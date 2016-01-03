@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<canvas id="myCanvas">
+Your browser does not support the canvas element.
+</canvas>
+
+<style>
+html, body {
+  width:  100%;
+  height: 100%;
+  margin: 0px;
+  overflow: hidden;
+}
+</style>
+
+<script src="game.js"></script>
+
+<script>
+
+/**
+ * Canvas creation. Very important!!
+ */
+var canvas = document.getElementById("myCanvas");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+var ctx = canvas.getContext("2d");
+
+/**
+ * Other important global variables (e.g. time-keeping, environment)
+ */
+var my_game = new Game();
+var time_step = 1.0 / 60; // Time-step. Measured in seconds.
+var total_elapsed_time = 0.0;
+var accumulator = 0.0;
+var current_time = new Date();
+
+/**
+ * Main loop. Runs physics and renderer separately.
+ */
+function main() {
+	
+	new_time = new Date();
+    frame_time = (new_time - current_time) / 1000;
+	
+    if ( frame_time > 0.1 )
+        frame_time = 0.1;
+    current_time = new_time;
+
+    accumulator += frame_time;
+    while ( accumulator >= time_step )
+    {
+        my_game.update(time_step);
+        total_elapsed_time += time_step;
+        accumulator -= time_step;
+    }
+    ctx.fillStyle = "#334D66";
+	ctx.fillRect( 0 , 0 , window.innerWidth , window.innerHeight );
+	my_game.draw(accumulator); // accumulator passed in as a partial frame. For Anti-A purposes
+}
+
+// Borrowed from http://stackoverflow.com/questions/1846599
+function keydown_handler(e){
+
+	var keynum;
+
+	if (window.event) { // IE					
+		keynum = e.keyCode;
+	} else if (e.which) { // Netscape/Firefox/Opera					
+		keynum = e.which;
+	}
+	console.log(String.fromCharCode(keynum));
+	
+	my_game.keydown_handler(String.fromCharCode(keynum));
+}
+
+function explain(y, x) {
+	return my_game.board.blocks[y][x];
+}
+
+window.addEventListener('keydown', keydown_handler, false);
+
+var mainLooper = setInterval(main, time_step);
+
+</script>
+
+</body>
+</html>
+
