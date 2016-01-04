@@ -16,6 +16,8 @@ html, body {
 </style>
 
 <script src="game.js"></script>
+<script src="board.js"></script>
+<script src="block.js"></script>
 
 <script>
 
@@ -70,13 +72,13 @@ function keydown_handler(e){
 	} else if (e.which) { // Netscape/Firefox/Opera					
 		keynum = e.which;
 	}
-	console.log(String.fromCharCode(keynum));
+	//console.log(String.fromCharCode(keynum));
 	
 	my_game.keydown_handler(String.fromCharCode(keynum));
 }
 
 function explain(y, x) {
-	return my_game.board.blocks[y][x];
+	return my_game.board.block[y][x];
 }
 
 window.addEventListener('keydown', keydown_handler, false);
