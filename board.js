@@ -8,10 +8,10 @@ var Board = function() {
 			this.block[x].push(EMPTY_BLOCK);
 		}
 	}
+	this.cursor = { "x" : 2, "y" : -1 };
 	for (var x = 0; x < BOARD_HEIGHT / 2; x++) {
 		this.raise();
 	}
-	this.cursor = { "x" : 2, "y" : 5 };
 	this.current_chain = 1;
 }
 
@@ -57,8 +57,8 @@ Board.prototype.update = function() {
 }
 
 Board.prototype.swap = function() {
-	if (this.block[this.cursor.y][this.cursor.x].get_state() != Block.StateEnum.CLEAR) {
-		if (this.block[this.cursor.y][this.cursor.x + 1].get_state() != Block.StateEnum.CLEAR) {
+	if (this.block[this.cursor.y][this.cursor.x].isSwappable()) {
+		if (this.block[this.cursor.y][this.cursor.x + 1].isSwappable()) {
 			temp = this.block[this.cursor.y][this.cursor.x];
 			this.block[this.cursor.y][this.cursor.x] = this.block[this.cursor.y][this.cursor.x + 1];
 			this.block[this.cursor.y][this.cursor.x + 1] = temp;
@@ -68,6 +68,7 @@ Board.prototype.swap = function() {
 
 Board.prototype.checkClear = function() {
 	
+	clear_found = false;
 	chain_found = false;
 	
 	// Check for horizontal clears.
@@ -102,6 +103,7 @@ Board.prototype.checkClear = function() {
 	for (var i = 0; i < BOARD_HEIGHT; i++) {
 		for (var j = BOARD_LENGTH - 1; j >= 0; j--) {
 			if (h[i][j] >= 3) {
+				clear_found = true;
 				var blocks_to_clear = h[i][j];
 				for (var delta = 0; delta < blocks_to_clear; delta++) {
 					if (this.block[i][j - delta].chain_material) {
@@ -119,6 +121,7 @@ Board.prototype.checkClear = function() {
 	for (var i = 0; i < BOARD_HEIGHT; i++) {
 		for (var j = BOARD_LENGTH - 1; j >= 0; j--) {
 			if (v[i][j] >= 3) {
+				clear_found = true;
 				var blocks_to_clear = v[i][j];
 				for (var delta = 0; delta < blocks_to_clear; delta++) {
 					if (this.block[i - delta][j].chain_material) {
@@ -131,9 +134,22 @@ Board.prototype.checkClear = function() {
 		}
 	}
 	
+	if (clear_found) {
+		var clear_sound = CLEAR_SOUNDS[Math.floor(Math.random() * CLEAR_SOUNDS.length)];
+		var clear = new Audio(clear_sound);
+		console.log(clear_sound);
+		clear.play();
+	}
+	
 	if (chain_found) {
 		this.current_chain += 1;
 		console.log(this.current_chain + "x chain!!!");
+		for (var i = 0; i < this.current_chain; i++) {
+			var chain_sound = CHAIN_SOUNDS[Math.floor(Math.random() * CHAIN_SOUNDS.length)];
+			var chain = new Audio(chain_sound);
+			console.log(chain_sound);
+			chain.play();
+		}
 	}
 	
 	// At this point, nothing at rest can be chain material.
@@ -202,11 +218,17 @@ Board.prototype.fall = function() {
 	
 }
 Board.prototype.raise = function() {
+	
+	// Check for a loss.
+	var loss = false;
 	for (var j = 0; j < BOARD_LENGTH; j++) {
 		if (!this.block[BOARD_HEIGHT - 1][j].empty()) {
-			console.log("LOSE");
+			loss = true;
 		}
 	}
+	if (loss) { console.log("You lose!!"); }
+	
+	// Raise blocks from top to bottom.
 	for (var i = BOARD_HEIGHT - 2; i >= 0; i--) {
 		for (var j = 0; j < BOARD_LENGTH; j++) {
 			this.block[i + 1][j] = this.block[i][j];
@@ -235,6 +257,13 @@ Board.prototype.raise = function() {
 				possible_colors.push(BLOCK_COLORS[color]);
 			}
 		}
-		this.block[0][j] = new Block(possible_colors);
+		if (possible_colors.length == 0) {
+			this.block[0][j] = Block.random();
+		} else {
+			this.block[0][j] = new Block(possible_colors);
+		}
 	}
+	
+	this.cursor.y += 1;
+	
 }

@@ -38,6 +38,10 @@ Block.prototype.isSupportive = function() {
 	return !(this.empty() || this.get_state() == Block.StateEnum.FALL);
 }
 
+Block.prototype.isSwappable = function() {
+	return (this.get_state() != Block.StateEnum.CLEAR && this.get_state() != Block.StateEnum.FLOAT);
+}
+
 Block.prototype.get_state = function() {
 	return this.state;
 }
