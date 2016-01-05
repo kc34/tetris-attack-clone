@@ -4,7 +4,7 @@
 var Block = function(block_colors) {
 	
 	// Obviously, you need colors to be able to match the blocks.
-	this.color = block_colors[Math.floor(Math.random() * block_colors.length)];
+	this.color = random_from_array(block_colors);
 	
 	// Blocks are either resting, clearing, or falling. A float will preceed a fall.
 	this.state = Block.StateEnum.REST; // StateEnum is provided below.

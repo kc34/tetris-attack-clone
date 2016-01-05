@@ -1,6 +1,6 @@
 var TEMPORAL_ANTIALIASING = false; // Doesn't look so good. Don't use!
 
-var EMPTY_BLOCK_COLOR = "#bbbbbb"
+var EMPTY_BLOCK_COLOR = "#999999"
 var BLOCK_COLORS = ["#bb0000", "#00bb00", "#bbbb00", "#bb00bb", "#00bbbb"];
 
 var FLOAT_PERIOD = 0.4; // In seconds, how long the block will remain unmoving when swapped into midair.
@@ -12,8 +12,7 @@ var BOARD_LENGTH = 6;  // In blocks
 
 var CANVAS_BACKGROUND_COLOR = "#334D66"; // A pretty shade of blue!
 
-var CLEAR_SOUNDS = ["sound/Clear1.wav", "sound/Clear2.wav", "sound/Clear3.wav"];
-var CHAIN_SOUNDS = ["sound/Chain1.wav", "sound/Chain2.wav", "sound/Chain3.wav"];
+var DANK_MEMES_ENABLED = true;
 
 var Game = function() {
 	this.board = new Board();
@@ -44,7 +43,7 @@ Game.prototype.draw = function(accumulator) {
 			if (!this.board.block[row][col].empty()) {
 				var block = this.board.block[row][col].color;
 				if (this.board.block[row][col].get_state() == Block.StateEnum.CLEAR) {
-					block = block.replace("b", "f").replace("0", "2");
+					block = block.replace("b", "f");
 				}
 				var percent_fall = 0;
 				if (this.board.block[row][col].get_state() == Block.StateEnum.FALL) {
@@ -109,31 +108,31 @@ Game.prototype.keydown_handler = function(key) {
 	switch (key) {
 		case "W":
 		case "&":
-			if (this.board.cursor.y < BOARD_HEIGHT - 1)
+			if (this.board.cursor.y < BOARD_HEIGHT - 1) {
 				this.board.cursor.y += 1;
-				var move = new Audio("sound/Move.wav");
-				move.play();
+				SoundPlayer.play_move();
+			}
 			break;
 		case "S":
 		case "(":
-			if (this.board.cursor.y > 0)
+			if (this.board.cursor.y > 0) {
 				this.board.cursor.y -= 1;
-				var move = new Audio("sound/Move.wav");
-				move.play();
+				SoundPlayer.play_move();
+			}
 			break;
 		case "A":
 		case "%": 
-			if (this.board.cursor.x > 0)
+			if (this.board.cursor.x > 0) {
 				this.board.cursor.x -= 1;
-				var move = new Audio("sound/Move.wav");
-				move.play();
+				SoundPlayer.play_move();
+			}
 			break;
 		case "D":
 		case "'":
-			if (this.board.cursor.x < BOARD_LENGTH - 2)
+			if (this.board.cursor.x < BOARD_LENGTH - 2) {
 				this.board.cursor.x += 1;
-				var move = new Audio("sound/Move.wav");
-				move.play();
+				SoundPlayer.play_move();
+			}
 			break;
 		case " ":
 			var swap = new Audio("sound/Swap.wav");
@@ -142,8 +141,7 @@ Game.prototype.keydown_handler = function(key) {
 			break;
 		default:
 			this.board.raise();
-			var move = new Audio("sound/Move.wav");
-			move.play();
+			SoundPlayer.play_move();
 			break;
 	}
 }
@@ -155,7 +153,11 @@ Game.prototype.update = function(time_step) {
 	this.board.update();
 }
 
+/**
+ * Miscellaneous helper functions.
+ */
 var matrix_make = function(height, width, default_val) {
+	// Constructs 2D array with given dimensions & default value.
 	var my_matrix = new Array();
 	for (var row = 0; row < height; row++) {
 		var new_row = new Array();
@@ -165,4 +167,8 @@ var matrix_make = function(height, width, default_val) {
 		my_matrix.push(new_row);	
 	}
 	return my_matrix
+}
+
+var random_from_array = function(my_array) {
+	return my_array[Math.floor(Math.random() * my_array.length)];
 }
