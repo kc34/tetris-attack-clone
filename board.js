@@ -264,6 +264,8 @@ Board.prototype.raise = function() {
 		}
 	}
 	
-	this.cursor.y += 1;
+	if (this.cursor.y + 1 < BOARD_HEIGHT) {
+		this.cursor.y += 1;
+	}
 	
 }
