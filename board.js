@@ -135,21 +135,19 @@ Board.prototype.checkClear = function() {
 	}
 	
 	if (clear_found) {
+		/*
 		var clear_sound = CLEAR_SOUNDS[Math.floor(Math.random() * CLEAR_SOUNDS.length)];
 		var clear = new Audio(clear_sound);
 		console.log(clear_sound);
 		clear.play();
+		*/
+		SoundPlayer.play_clear();
 	}
 	
 	if (chain_found) {
 		this.current_chain += 1;
 		console.log(this.current_chain + "x chain!!!");
-		for (var i = 0; i < this.current_chain; i++) {
-			var chain_sound = CHAIN_SOUNDS[Math.floor(Math.random() * CHAIN_SOUNDS.length)];
-			var chain = new Audio(chain_sound);
-			console.log(chain_sound);
-			chain.play();
-		}
+		SoundPlayer.play_chain(this.current_chain);
 	}
 	
 	// At this point, nothing at rest can be chain material.
@@ -263,7 +261,8 @@ Board.prototype.raise = function() {
 			this.block[0][j] = new Block(possible_colors);
 		}
 	}
-	
-	this.cursor.y += 1;
+	if (this.cursor.y + 1 < BOARD_HEIGHT) {
+		this.cursor.y += 1;
+	}
 	
 }
