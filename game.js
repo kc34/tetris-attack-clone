@@ -12,7 +12,9 @@ var BOARD_LENGTH = 6;  // In blocks
 
 var CANVAS_BACKGROUND_COLOR = "#334D66"; // A pretty shade of blue!
 
-var DANK_MEMES_ENABLED = true;
+var LENIENCY = 0.5 // from 0 to 1, how close to a grid position a falling block must be to be swapped!
+
+var DANK_MEMES_ENABLED = false; // oh baby!
 
 var Game = function() {
 	this.board = new Board();
@@ -50,7 +52,7 @@ Game.prototype.draw = function(accumulator) {
 					if (!TEMPORAL_ANTIALIASING) {
 						accumulator = 0;
 					}
-					percent_fall = 1 - ((this.board.block[row][col].state_timer - accumulator) / (1.0 / DROP_SPEED));
+					percent_fall = 1 - ((this.board.block[row][col].state_timer - accumulator) / (1.0 / DROP_SPEED)) - 0.5;
 					if (percent_fall > 1) { percent_fall = 1;}
 				}
 				ctx.fillStyle = block;
@@ -136,7 +138,6 @@ Game.prototype.keydown_handler = function(key) {
 			break;
 		case " ":
 			var swap = new Audio("sound/Swap.wav");
-			swap.play();
 			this.board.swap();
 			break;
 		default:
