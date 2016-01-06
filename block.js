@@ -39,7 +39,19 @@ Block.prototype.isSupportive = function() {
 }
 
 Block.prototype.isSwappable = function() {
-	return (this.get_state() != Block.StateEnum.CLEAR && this.get_state() != Block.StateEnum.FLOAT);
+	switch (this.get_state()) {
+		case Block.StateEnum.CLEAR:
+		case Block.StateEnum.FLOAT:
+			return false;
+			break;
+		case Block.StateEnum.FALL:
+			// Check if leniency allows it.
+			return (this.state_timer < (LENIENCY / 2) || this.state_timer > 1 / DROP_SPEED - (LENIENCY / 2));
+			break;
+		default:
+			return true;
+			break;
+	}
 }
 
 Block.prototype.get_state = function() {
@@ -47,6 +59,7 @@ Block.prototype.get_state = function() {
 }
 
 Block.prototype.set_state = function(new_state) {
+	old_state = this.state;
 	switch (new_state) {
 		case Block.StateEnum.FLOAT:
 			this.state_timer = FLOAT_PERIOD;
@@ -55,7 +68,11 @@ Block.prototype.set_state = function(new_state) {
 			this.state_timer = CLEAR_PERIOD;
 			break;
 		case Block.StateEnum.FALL:
-			this.state_timer = 1.0 / DROP_SPEED;
+			if (old_state == Block.StateEnum.FLOAT) {
+				this.state_timer = 1.0 / DROP_SPEED / 2;
+			} else {
+				this.state_timer = 1.0 / DROP_SPEED;
+			}
 			break;
 		default:
 			this.state_timer = 0;

@@ -62,6 +62,11 @@ Board.prototype.swap = function() {
 			temp = this.block[this.cursor.y][this.cursor.x];
 			this.block[this.cursor.y][this.cursor.x] = this.block[this.cursor.y][this.cursor.x + 1];
 			this.block[this.cursor.y][this.cursor.x + 1] = temp;
+			
+			this.block[this.cursor.y][this.cursor.x].chain_material = false;
+			this.block[this.cursor.y][this.cursor.x + 1].chain_material = false;
+			
+			SoundPlayer.play_swap();
 		}
 	}
 }
@@ -193,7 +198,8 @@ Board.prototype.fall = function() {
 			}
 			
 			// STEP 3:
-			if (this.block[row][col].get_state() == Block.StateEnum.FALL) {
+			if (this.block[row][col].get_state() == Block.StateEnum.FALL && this.block[row][col].state_timer <= 1.0 / DROP_SPEED / 2) {
+				console.log(this.block[row][col].state_timer);
 				if (row == 0 || this.block[row - 1][col].isSupportive()) {
 					this.block[row][col].set_state(Block.StateEnum.REST);
 				} else {
@@ -202,11 +208,13 @@ Board.prototype.fall = function() {
 						this.block[row - 1][col] = this.block[row][col];
 						this.block[row][col] = EMPTY_BLOCK;
 						// Determine and set new state
+						/*
 						if (row - 1 == 0 || this.block[row - 2][col].isSupportive()) {
 							this.block[row - 1][col].set_state(Block.StateEnum.REST);
 						} else {
 							this.block[row - 1][col].set_state(Block.StateEnum.FALL);
-						}
+						}*/
+						this.block[row - 1][col].set_state(Block.StateEnum.FALL);
 					}
 				}
 			}
