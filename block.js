@@ -23,12 +23,6 @@ Block.prototype.empty = function() {
 	return false;
 }
 
-Block.prototype.matches = function(otherBlock) {
-	// Used for matching purposes. Both blocks have to be "matchable"
-	colors_match = this.color == otherBlock.color;
-	return (this.isMatchable() && otherBlock.isMatchable() && colors_match);
-}
-
 Block.prototype.isMatchable = function() {
 	return (this.state == Block.StateEnum.REST || this.state == Block.StateEnum.FLOAT);
 }
@@ -45,8 +39,7 @@ Block.prototype.isSwappable = function() {
 			return false;
 			break;
 		case Block.StateEnum.FALL:
-			// Check if leniency allows it.
-			return (this.state_timer < (LENIENCY / 2) || this.state_timer > 1 / DROP_SPEED - (LENIENCY / 2));
+			return true;
 			break;
 		default:
 			return true;
@@ -58,11 +51,15 @@ Block.prototype.get_state = function() {
 	return this.state;
 }
 
-Block.prototype.set_state = function(new_state) {
+Block.prototype.set_state = function(new_state, args) {
 	old_state = this.state;
 	switch (new_state) {
 		case Block.StateEnum.FLOAT:
-			this.state_timer = FLOAT_PERIOD;
+			if (typeof(args) === "undefined") {
+				this.state_timer = FLOAT_PERIOD;
+			} else {
+				this.state_timer = args ? CHAIN_FLOAT_PERIOD : FLOAT_PERIOD;
+			}
 			break;
 		case Block.StateEnum.CLEAR:
 			this.state_timer = CLEAR_PERIOD;
@@ -81,11 +78,19 @@ Block.prototype.set_state = function(new_state) {
 	this.state = new_state;
 }
 
-Block.prototype.update_timer = function(time_delta) {
-	this.state_timer = this.state_timer - time_delta;
+Block.prototype.update_timer = function(dt) {
+	this.state_timer = this.state_timer - dt;
 	if (this.state_timer < 0) {
 		this.state_timer = 0.0;
 	}
+}
+
+Block.prototype.relative_position = function() {
+	if (this.state == Block.StateEnum.FALL) {
+		return this.state_timer / (1.0 / DROP_SPEED) - 0.5;
+	} else {
+		return 0.0;
+	} 
 }
 
 Block.random = function() {
@@ -108,3 +113,9 @@ EMPTY_BLOCK.matches = function(otherBlock) { return false; }
 EMPTY_BLOCK.empty = function() { return true; }
 EMPTY_BLOCK.set_state = function() { this.state = "EMPTY" } // TODO: INVESTIGATE
 EMPTY_BLOCK.set_state("EMPTY");
+
+Block.isMatch = function(block_a, block_b) {
+	// Used for matching purposes. Both blocks have to be "matchable"
+	colors_match = block_a.color == block_b.color;
+	return (block_a.isMatchable() && block_b.isMatchable() && colors_match);
+}

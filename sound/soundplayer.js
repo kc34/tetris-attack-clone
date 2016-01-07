@@ -7,15 +7,12 @@ var SoundPlayer = {
 	SWAP_SOUND : "sound/Swap.wav",
 	
 	play_clear : function() {
-		var clear_sound = random_from_array(this.CLEAR_SOUNDS);
-		var clear = new Audio(clear_sound);
-		clear.play();
+		this.try_sound(random_from_array(this.CLEAR_SOUNDS));
 	},
 	
 	play_chain : function(intensity) {
 		if (DANK_MEMES_ENABLED && intensity == 3) {
-			var triple = new Audio(this.TRIPLE);
-			triple.play();
+			this.try_sound(this.TRIPLE);
 			console.log("Oh baby!");
 		}
 		for (var i = 0; i < intensity; i++) {
@@ -30,13 +27,16 @@ var SoundPlayer = {
 	},
 	
 	play_move : function() {
-		var move = new Audio(this.MOVE_SOUND);
-		move.play();
+		this.try_sound(this.MOVE_SOUND);
 	},
 	
 	play_swap : function() {
-		var swap = new Audio(this.SWAP_SOUND);
-		swap.play();
+		this.try_sound(this.SWAP_SOUND);
+	},
+	
+	try_sound : function(sound_file) {
+		var my_audio = new Audio(sound_file);
+		my_audio.play();
 	}
 	
 }

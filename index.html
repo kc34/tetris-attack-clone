@@ -34,7 +34,7 @@ var ctx = canvas.getContext("2d");
  * Other important global variables (e.g. time-keeping, environment)
  */
 var my_game = new Game();
-var time_step = 1.0 / 60; // Time-step. Measured in seconds.
+var TIME_STEP = 1.0 / 50; // Time-step. Measured in seconds.
 var total_elapsed_time = 0.0;
 var accumulator = 0.0;
 var current_time = new Date();
@@ -52,11 +52,11 @@ function main() {
     current_time = new_time;
 
     accumulator += frame_time;
-    while ( accumulator >= time_step )
+    while ( accumulator >= TIME_STEP )
     {
-        my_game.update(time_step);
-        total_elapsed_time += time_step;
-        accumulator -= time_step;
+        my_game.update(TIME_STEP);
+        total_elapsed_time += TIME_STEP;
+        accumulator -= TIME_STEP;
     }
     ctx.fillStyle = "#334D66";
 	ctx.fillRect( 0 , 0 , window.innerWidth , window.innerHeight );
@@ -64,27 +64,24 @@ function main() {
 }
 
 // Borrowed from http://stackoverflow.com/questions/1846599
-function keydown_handler(e){
-
-	var keynum;
-
-	if (window.event) { // IE					
-		keynum = e.keyCode;
-	} else if (e.which) { // Netscape/Firefox/Opera					
-		keynum = e.which;
-	}
-	//console.log(String.fromCharCode(keynum));
-	
+function keydown_handler(key){
+		
+	var keynum = window.event ? key.keyCode : key.which; // window.event = userIsIE
 	my_game.keydown_handler(String.fromCharCode(keynum));
+	
 }
 
-function explain(y, x) {
-	return my_game.board.block[y][x];
+function keyup_handler(key){
+		
+	var keynum = window.event ? key.keyCode : key.which; // window.event = userIsIE
+	my_game.keyup_handler(String.fromCharCode(keynum));
+	
 }
 
 window.addEventListener('keydown', keydown_handler, false);
+window.addEventListener('keyup', keyup_handler, false);
 
-var mainLooper = setInterval(main, time_step);
+var mainLooper = setInterval(main, TIME_STEP);
 
 </script>
 
