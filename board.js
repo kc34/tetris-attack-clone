@@ -145,12 +145,12 @@ Board.prototype.checkClear = function() {
 	
 	// Also keep track of non-rests. If all are at rest, chain is reset.
 	var non_rests = 0;
-	for (var row = 0; i < this.HEIGHT; row++) {
-		for (var col = 0; j < this.WIDTH; col++) {
+	for (var row = 0; row < this.HEIGHT; row++) {
+		for (var col = 0; col < this.WIDTH; col++) {
 			if (this.block[row][col].get_state() == Block.StateEnum.REST) {
 				this.block[row][col].chain_material = false;
 			} else {
-				if (!this.block[i][j].empty()) { non_rests += 1; }
+				if (!this.block[row][col].empty()) { non_rests += 1; }
 			}
 		}
 	}
