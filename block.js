@@ -16,6 +16,9 @@ var Block = function(block_colors) {
 	// chain_material activates when a block is dropped by a clear.
 	this.chain_material = false;
 	
+	// floats caused by chains can be swapped.
+	this.good_float = false;
+	
 }
 
 Block.prototype.empty = function() {
@@ -35,8 +38,10 @@ Block.prototype.isSupportive = function() {
 Block.prototype.isSwappable = function() {
 	switch (this.get_state()) {
 		case Block.StateEnum.CLEAR:
-		case Block.StateEnum.FLOAT:
 			return false;
+			break;
+		case Block.StateEnum.FLOAT:
+			return this.good_float;
 			break;
 		case Block.StateEnum.FALL:
 			return true;
@@ -57,8 +62,15 @@ Block.prototype.set_state = function(new_state, args) {
 		case Block.StateEnum.FLOAT:
 			if (typeof(args) === "undefined") {
 				this.state_timer = FLOAT_PERIOD;
+				this.good_float = false;
 			} else {
-				this.state_timer = args ? CHAIN_FLOAT_PERIOD : FLOAT_PERIOD;
+				if (args) {
+					this.state_timer = CHAIN_FLOAT_PERIOD;
+					this.good_float = true;
+				} else {
+					this.state_timer = FLOAT_PERIOD;
+					this.good_float = false;
+				}
 			}
 			break;
 		case Block.StateEnum.CLEAR:
