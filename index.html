@@ -83,6 +83,15 @@ window.addEventListener('keyup', keyup_handler, false);
 
 var mainLooper = setInterval(main, TIME_STEP);
 
+console.log("Looking for console commands?");
+console.log("Try new_board(x, y)");
+
+var new_board = function(x, y) {
+	BOARD_HEIGHT = y;
+	BOARD_LENGTH = x;
+	my_game = new Game();
+}
+
 </script>
 
 </body>
