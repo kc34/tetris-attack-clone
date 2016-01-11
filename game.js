@@ -18,13 +18,10 @@ var LENIENCY = 0.25 // from 0 to 1, how close to a grid position a falling block
 
 var DANK_MEMES_ENABLED = false; // oh baby!
 
-var Game = function() {
-	
-	// TODO: Boards have different starting blocks
-	// Also there is a magic/arbitrary number here.
+var Game = function(players) {
 
 	this.board_array = [];
-	for (var i = 0; i < 2; i++) {
+	for (var i = 0; i < players; i++) {
 		this.board_array.push(new Board(i));
 	}
 
@@ -55,6 +52,8 @@ Game.prototype.player_register = function(name, controls, board) {
 
 	this.input.deregister_board(board);
 	this.input.register(name, board);
+
+	// Bind keys to hooks
 
 	this.inputhash[controls[0]] = this.input.up.bind(this.input);
 	this.inputhash[controls[1]] = this.input.left.bind(this.input);
@@ -176,6 +175,9 @@ Game.prototype.keydown_handler = function(key) {
 		console.log("You are pressing a key that is held down!");
 		return null;
 	}
+
+	// Calls function bound to key
+	// TODO: Rising and switching are spammable again, sorry.
 
 	if (key in this.inputhash)
 	{

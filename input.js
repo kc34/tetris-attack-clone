@@ -4,6 +4,8 @@ var Input = function() {
 	this.namehash = [];
 }
 
+// Prevents two things from mapping to the same board
+
 Input.prototype.register = function(name, board) {
 
 	this.boardhash[name] = board;
@@ -30,6 +32,8 @@ Input.prototype.is_register = function(name) {
 	}
 	return true;
 }
+
+// A bunch of hooks!
 
 Input.prototype.up = function(name) {
 
