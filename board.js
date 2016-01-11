@@ -1,4 +1,4 @@
-var Board = function() {
+var Board = function(board_number) {
 	
 	this.HEIGHT = BOARD_HEIGHT;
 	this.WIDTH = BOARD_LENGTH;
@@ -12,6 +12,8 @@ var Board = function() {
 	}
 	
 	this.current_chain = 1;
+
+	this.board_number = board_number;
 }
 
 /**
@@ -137,7 +139,7 @@ Board.prototype.checkClear = function() {
 	
 	if (chain_found) {
 		this.current_chain += 1;
-		console.log(this.current_chain + "x chain!!!");
+		console.log("BOARD #" + this.board_number + " " + this.current_chain + "x chain!!!");
 		SoundPlayer.play_chain(this.current_chain);
 	}
 	
@@ -157,7 +159,7 @@ Board.prototype.checkClear = function() {
 	
 	if (non_rests == 0 && this.current_chain != 1) {
 		this.current_chain = 1;
-		console.log("Chain over");
+		console.log("BOARD #" + this.board_number + " " + "Chain over");
 	}
 }
 
@@ -226,7 +228,7 @@ Board.prototype.raise = function() {
 			loss = true;
 		}
 	}
-	if (loss) { console.log("You lose!!"); }
+	if (loss) { console.log("BOARD #" + this.board_number + " " + "You lose!!"); }
 	
 	// Raise blocks from top to bottom.
 	for (var i = this.HEIGHT - 2; i >= 0; i--) {
