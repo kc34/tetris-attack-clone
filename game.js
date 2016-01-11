@@ -53,7 +53,7 @@ Game.prototype.player_register = function(name, controls, board) {
 		}
 	}
 
-	this.input.deregister(board);
+	this.input.deregister_board(board);
 	this.input.register(name, board);
 
 	this.inputhash[controls[0]] = this.input.up.bind(this.input);
