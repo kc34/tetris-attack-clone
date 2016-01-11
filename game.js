@@ -28,6 +28,33 @@ var Game = function() {
 	}
 
 	this.pressed_keys = new Array();
+	this.input = new Input();
+
+	this.inputhash = [];
+	this.namehash = [];
+
+	this.player_register("player1", ["W", "A", "S", "D" ,"J", "K"]);
+
+}
+
+Game.prototype.player_register = function(name, controls) {
+
+	// oh my god this is so bad
+	this.input.register(name, this.board_array[0]);
+
+	this.inputhash[controls[0]] = this.input.up;
+	this.inputhash[controls[1]] = this.input.left;
+	this.inputhash[controls[2]] = this.input.down;
+	this.inputhash[controls[3]] = this.input.right;
+	this.inputhash[controls[4]] = this.input.switch;
+	this.inputhash[controls[5]] = this.input.raise;
+
+	this.namehash[controls[0]] = name;
+	this.namehash[controls[1]] = name;
+	this.namehash[controls[2]] = name;
+	this.namehash[controls[3]] = name;
+	this.namehash[controls[4]] = name;
+	this.namehash[controls[5]] = name;
 }
 
 /**
@@ -130,39 +157,12 @@ Game.prototype.keydown_handler = function(key) {
 		console.log("You are pressing a key that is held down!");
 		return null;
 	}
-	
-	// TODO: Replace with a dictionary/hashtable
 
-	if (key == "W" || key == "&") {
-		if (this.board_array[0].cursor.y < BOARD_HEIGHT - 1) {
-			this.board_array[0].cursor.y += 1;
-			SoundPlayer.play_move();
-		}
-	} else if (key == "S" || key == "(") {
-		if (this.board_array[0].cursor.y > 0) {
-			this.board_array[0].cursor.y -= 1;
-			SoundPlayer.play_move();
-		}
-	} else if (key == "A" || key == "%") {
-		if (this.board_array[0].cursor.x > 0) {
-			this.board_array[0].cursor.x -= 1;
-			SoundPlayer.play_move();
-		}
-	} else if (key == "D" || key == "'") {
-		if (this.board_array[0].cursor.x < BOARD_LENGTH - 2) {
-			this.board_array[0].cursor.x += 1;
-			SoundPlayer.play_move();
-		}
-	} else if (key == " ") {
-		this.ready_to_swap = false;
-		this.board_array[0].swap();
-		this.pressed_keys.push(key);
-	} else {
-		this.board_array[0].raise();
-		SoundPlayer.play_move();
-		this.pressed_keys.push(key);
+	if (key in this.inputhash)
+	{
+		console.log(this.inputhash[key]);
+		this.inputhash[key](this.namehash[key]);
 	}
-	
 }
 
 Game.prototype.keyup_handler = function(key) {
