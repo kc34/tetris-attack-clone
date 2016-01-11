@@ -1,34 +1,41 @@
 var Input = function() {
 
 	this.boardhash = [];
+	this.namehash = [];
 }
 
 Input.prototype.register = function(name, board) {
 
 	this.boardhash[name] = board;
+	this.namehash[board] = name;
 }
 
 Input.prototype.deregister_name = function(name) {
 
+	this.namehash[this.boardhash[name]] = null;
 	this.boardhash[name] = null;
+}
+
+Input.prototype.deregister_board = function(board) {
+
+	this.boardhash[this.namehash[board]] = null;
+	this.namehash[board] = null;
 }
 
 Input.prototype.is_register = function(name) {
 
-	if (!(name in my_game.input.boardhash)) {
+	if (!(name in this.boardhash)) {
 		console.log(name + " is not registered. [!!]");
 		return false;
 	}
 	return true;
 }
 
-// TODO: FIND OUT WHY "this" IN BELOW OBJECTS IS AN EMPTY ARRAY
-
 Input.prototype.up = function(name) {
 
-	if (my_game.input.is_register(name)) {
-		if (my_game.input.boardhash[name].cursor.y < BOARD_HEIGHT - 1) {
-			my_game.input.boardhash[name].cursor.y += 1;
+	if (this.is_register(name)) {
+		if (this.boardhash[name].cursor.y < BOARD_HEIGHT - 1) {
+			this.boardhash[name].cursor.y += 1;
 			SoundPlayer.play_move();
 		}
 	}
@@ -36,9 +43,9 @@ Input.prototype.up = function(name) {
 
 Input.prototype.down = function(name) {
 
-	if (my_game.input.is_register(name)) {
-		if (my_game.input.boardhash[name].cursor.y > 0) {
-			my_game.input.boardhash[name].cursor.y -= 1;
+	if (this.is_register(name)) {
+		if (this.boardhash[name].cursor.y > 0) {
+			this.boardhash[name].cursor.y -= 1;
 			SoundPlayer.play_move();
 		}
 	}
@@ -46,9 +53,9 @@ Input.prototype.down = function(name) {
 
 Input.prototype.left = function(name) {
 
-	if (my_game.input.is_register(name)) {
-		if (my_game.input.boardhash[name].cursor.x > 0) {
-			my_game.input.boardhash[name].cursor.x -= 1;
+	if (this.is_register(name)) {
+		if (this.boardhash[name].cursor.x > 0) {
+			this.boardhash[name].cursor.x -= 1;
 			SoundPlayer.play_move();
 		}
 	}
@@ -56,9 +63,9 @@ Input.prototype.left = function(name) {
 
 Input.prototype.right = function(name) {
 
-	if (my_game.input.is_register(name)) {
-		if (my_game.input.boardhash[name].cursor.x < BOARD_LENGTH - 2) {
-			my_game.input.boardhash[name].cursor.x += 1;
+	if (this.is_register(name)) {
+		if (this.boardhash[name].cursor.x < BOARD_LENGTH - 2) {
+			this.boardhash[name].cursor.x += 1;
 			SoundPlayer.play_move();
 		}
 	}
@@ -66,14 +73,14 @@ Input.prototype.right = function(name) {
 
 Input.prototype.switch = function(name)	{
 
-	if (my_game.input.is_register(name)) {
-		my_game.input.boardhash[name].swap();
+	if (this.is_register(name)) {
+		this.boardhash[name].swap();
 	}
 }
 
 Input.prototype.raise = function(name)	{
 
-	if (my_game.input.is_register(name)) {
-		my_game.input.boardhash[name].raise();
+	if (this.is_register(name)) {
+		this.boardhash[name].raise();
 	}
 }

@@ -6,6 +6,7 @@ var CHAIN_FLOAT_PERIOD = 0.5 // how long the block will remain when something un
 var CLEAR_PERIOD = 1.0; // How long blocks will remain after being cleared.
 var DROP_SPEED = 20; // Blocks per second.
 
+var CURSOR_WIDTH = 0.1; // In blocks
 var BOARD_HEIGHT = 12; // In blocks
 var BOARD_LENGTH = 6;  // In blocks
 
@@ -33,21 +34,34 @@ var Game = function() {
 	this.inputhash = [];
 	this.namehash = [];
 
-	this.player_register("player1", ["W", "A", "S", "D" ,"J", "K"]);
+	this.player_register("player1", "WASDJK", this.board_array[0]);
 
 }
 
-Game.prototype.player_register = function(name, controls) {
+Game.prototype.player_register = function(name, controls, board) {
 
 	// oh my god this is so bad
-	this.input.register(name, this.board_array[0]);
 
-	this.inputhash[controls[0]] = this.input.up;
-	this.inputhash[controls[1]] = this.input.left;
-	this.inputhash[controls[2]] = this.input.down;
-	this.inputhash[controls[3]] = this.input.right;
-	this.inputhash[controls[4]] = this.input.switch;
-	this.inputhash[controls[5]] = this.input.raise;
+	controls = controls.toUpperCase();
+	controls = controls.split("");
+
+	for (var i = 0; i < 6; i++) {
+		if (this.inputhash[controls[i]] != undefined) {
+			console.log("Conflict with " + controls[i] + "");
+			console.log(this.namehash[controls[i]] + " owns that key");
+			return null;
+		}
+	}
+
+	this.input.deregister(board);
+	this.input.register(name, board);
+
+	this.inputhash[controls[0]] = this.input.up.bind(this.input);
+	this.inputhash[controls[1]] = this.input.left.bind(this.input);
+	this.inputhash[controls[2]] = this.input.down.bind(this.input);
+	this.inputhash[controls[3]] = this.input.right.bind(this.input);
+	this.inputhash[controls[4]] = this.input.switch.bind(this.input);
+	this.inputhash[controls[5]] = this.input.raise.bind(this.input);
 
 	this.namehash[controls[0]] = name;
 	this.namehash[controls[1]] = name;
@@ -55,6 +69,11 @@ Game.prototype.player_register = function(name, controls) {
 	this.namehash[controls[3]] = name;
 	this.namehash[controls[4]] = name;
 	this.namehash[controls[5]] = name;
+}
+
+Game.prototype.add_board = function()
+{
+	this.board_array.push(new Board());
 }
 
 /**
@@ -107,7 +126,7 @@ Game.prototype.draw = function(accumulator) {
 		}
 
 		// Draw cursor
-		var cursor_width = 5;
+		var cursor_width =  CURSOR_WIDTH * b_c.length / BOARD_LENGTH;
 		ctx.lineWidth = cursor_width;
 		ctx.fillStyle = "#000000";
 		ctx.strokeRect(
@@ -160,7 +179,6 @@ Game.prototype.keydown_handler = function(key) {
 
 	if (key in this.inputhash)
 	{
-		console.log(this.inputhash[key]);
 		this.inputhash[key](this.namehash[key]);
 	}
 }
