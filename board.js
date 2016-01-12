@@ -16,6 +16,13 @@ var Board = function(board_number) {
 	this.board_number = board_number;
 }
 
+Board.prototype.toString = function() {
+
+	// Used for hashing boards
+	// TODO: use actual hash
+	return this.board_number;
+}
+
 /**
  * A mostly-arbitrarily ordered sequence of steps to advance the board to the next tick.
  */

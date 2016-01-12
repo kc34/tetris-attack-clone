@@ -22,57 +22,59 @@ var Game = function(players) {
 
 	this.board_array = [];
 	for (var i = 0; i < players; i++) {
-		this.board_array.push(new Board(i));
+		this.add_board();
 	}
 
 	this.pressed_keys = new Array();
 	this.input = new Input();
 
-	this.inputhash = [];
-	this.namehash = [];
+	this.key_to_func = [];
+	this.key_to_name = [];
 
-	this.player_register("player1", "WASDJK", this.board_array[0]);
+	this.register_player("Player 1", "WASDJK", this.board_array[0]);
 
 }
 
-Game.prototype.player_register = function(name, controls, board) {
+Game.prototype.register_player = function(name, controls, board) {
 
 	// oh my god this is so bad
+
+	if (this.input.register(name, board) === null) {
+
+		return null;
+	}
 
 	controls = controls.toUpperCase();
 	controls = controls.split("");
 
 	for (var i = 0; i < 6; i++) {
-		if (this.inputhash[controls[i]] != undefined) {
+		if (this.key_to_func[controls[i]] != undefined) {
 			console.log("Conflict with " + controls[i] + "");
-			console.log(this.namehash[controls[i]] + " owns that key");
+			console.log(this.key_to_name[controls[i]] + " owns that key");
 			return null;
 		}
 	}
 
-	this.input.deregister_board(board);
-	this.input.register(name, board);
-
 	// Bind keys to hooks
 
-	this.inputhash[controls[0]] = this.input.up.bind(this.input);
-	this.inputhash[controls[1]] = this.input.left.bind(this.input);
-	this.inputhash[controls[2]] = this.input.down.bind(this.input);
-	this.inputhash[controls[3]] = this.input.right.bind(this.input);
-	this.inputhash[controls[4]] = this.input.switch.bind(this.input);
-	this.inputhash[controls[5]] = this.input.raise.bind(this.input);
+	this.key_to_func[controls[0]] = this.input.up.bind(this.input);
+	this.key_to_func[controls[1]] = this.input.left.bind(this.input);
+	this.key_to_func[controls[2]] = this.input.down.bind(this.input);
+	this.key_to_func[controls[3]] = this.input.right.bind(this.input);
+	this.key_to_func[controls[4]] = this.input.switch.bind(this.input);
+	this.key_to_func[controls[5]] = this.input.raise.bind(this.input);
 
-	this.namehash[controls[0]] = name;
-	this.namehash[controls[1]] = name;
-	this.namehash[controls[2]] = name;
-	this.namehash[controls[3]] = name;
-	this.namehash[controls[4]] = name;
-	this.namehash[controls[5]] = name;
+	this.key_to_name[controls[0]] = name;
+	this.key_to_name[controls[1]] = name;
+	this.key_to_name[controls[2]] = name;
+	this.key_to_name[controls[3]] = name;
+	this.key_to_name[controls[4]] = name;
+	this.key_to_name[controls[5]] = name;
 }
 
-Game.prototype.add_board = function()
-{
-	this.board_array.push(new Board());
+Game.prototype.add_board = function() {
+
+	this.board_array.push(new Board(this.board_array.length));
 }
 
 /**
@@ -80,7 +82,7 @@ Game.prototype.add_board = function()
  * Draws the entire game.
  */
 Game.prototype.draw = function(accumulator) {
-	
+
 	// start with a screen clear
 	ctx.fillStyle = CANVAS_BACKGROUND_COLOR;
 	ctx.fillRect( 0 , 0 , window.innerWidth , window.innerHeight );
@@ -90,6 +92,7 @@ Game.prototype.draw = function(accumulator) {
 
 		// Draw the board background.
 		b_c = this.get_board_coordinates(player);
+
 		ctx.fillStyle = EMPTY_BLOCK_COLOR;
 		ctx.fillRect(b_c.left, b_c.top, b_c.length, b_c.height);
 
@@ -132,6 +135,10 @@ Game.prototype.draw = function(accumulator) {
 					b_c.left + this.board_array[player].cursor.x * block_length - cursor_width / 2,
 					bot - (this.board_array[player].cursor.y + 1) * block_height - cursor_width / 2,
 					block_length * 2 + cursor_width, block_height + cursor_width);
+
+		ctx.fillStyle = "#CCB299"
+		ctx.font = b_c.length/15 + "px sans-serif"
+		ctx.fillText("Board " + player + ": " + this.input.get_name(this.board_array[player]), b_c.left, b_c.top + b_c.height + b_c.length/15)
 	}	
 }
 
@@ -171,6 +178,7 @@ Game.prototype.get_board_coordinates = function(player) {
  */
 Game.prototype.keydown_handler = function(key) {
 	
+	// Figure out a way to tie this back into removing spam
 	if (this.pressed_keys.indexOf(key) != -1) {
 		console.log("You are pressing a key that is held down!");
 		return null;
@@ -179,9 +187,9 @@ Game.prototype.keydown_handler = function(key) {
 	// Calls function bound to key
 	// TODO: Rising and switching are spammable again, sorry.
 
-	if (key in this.inputhash)
+	if (key in this.key_to_func)
 	{
-		this.inputhash[key](this.namehash[key]);
+		this.key_to_func[key](this.key_to_name[key]);
 	}
 }
 
