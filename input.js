@@ -62,6 +62,7 @@ Input.prototype.up = function(name) {
 	if (board != undefined) {
 		if (board.cursor.y < BOARD_HEIGHT - 1) {
 			board.cursor.y += 1;
+			board.total_moves++;
 			SoundPlayer.play_move();
 		}
 	}
@@ -74,6 +75,7 @@ Input.prototype.down = function(name) {
 	if (board != undefined) {
 		if (board.cursor.y > 0) {
 			board.cursor.y -= 1;
+			board.total_moves++;
 			SoundPlayer.play_move();
 		}
 	}
@@ -86,6 +88,7 @@ Input.prototype.left = function(name) {
 	if (board != undefined) {
 		if (board.cursor.x > 0) {
 			board.cursor.x -= 1;
+			board.total_moves++;
 			SoundPlayer.play_move();
 		}
 	}
@@ -98,6 +101,7 @@ Input.prototype.right = function(name) {
 	if (board != undefined) {
 		if (board.cursor.x < BOARD_LENGTH - 2) {
 			board.cursor.x += 1;
+			board.total_moves++;
 			SoundPlayer.play_move();
 		}
 	}
@@ -109,6 +113,7 @@ Input.prototype.switch = function(name)	{
 
 	if (board != undefined) {
 		board.swap();
+		board.total_moves++;
 	}
 }
 

@@ -154,9 +154,21 @@ Game.prototype.draw = function(accumulator) {
 					bot - (this.board_array[player].cursor.y + 1) * block_height - cursor_width / 2,
 					block_length * 2 + cursor_width, block_height + cursor_width);
 
-		ctx.fillStyle = "#CCB299"
-		ctx.font = b_c.height/30 + "px sans-serif"
-		ctx.fillText("Board " + player + ": " + this.input.get_name(this.board_array[player]), b_c.left, b_c.top + b_c.height + b_c.height/30)
+		ctx.fillStyle = "#E6DDAC";
+		ctx.font = b_c.height/30 + "px sans-serif";
+		ctx.textAlign="start";
+		ctx.fillText("Board " + player + ": " + this.input.get_name(this.board_array[player]), b_c.left, b_c.top + b_c.height + b_c.height/30);
+
+		// Fun facts!
+		ctx.font = b_c.height/60 + "px sans-serif";
+		ctx.textAlign="end";
+
+		var efficiency = this.board_array[player].total_blocks / this.board_array[player].total_moves;
+		ctx.fillText("Efficiency!", b_c.left + b_c.length, b_c.top + b_c.height + b_c.height/60);
+
+		// TODO: Do some stuff with color to make players feel bad
+		// ctx.fillStyle = "#E6DDAC";
+		ctx.fillText(Math.round(efficiency*1000)/1000 + " blocks / move", b_c.left + b_c.length, b_c.top + b_c.height + b_c.height/30);
 	}	
 }
 
