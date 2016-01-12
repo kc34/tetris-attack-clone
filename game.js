@@ -1,4 +1,4 @@
-var EMPTY_BLOCK_COLOR = "#999999"
+var EMPTY_BLOCK_COLOR = "#999999";
 var BLOCK_COLORS = ["#bb0000", "#00bb00", "#bbbb00", "#bb00bb", "#00bbbb"];
 
 var FLOAT_PERIOD = 0.1; // In seconds, how long the block will remain unmoving when swapped into midair.
@@ -6,8 +6,11 @@ var CHAIN_FLOAT_PERIOD = 0.25 // how long the block will remain when something u
 var CLEAR_PERIOD = 1.1; // How long blocks will remain after being cleared.
 var DROP_SPEED = 20; // Blocks per second.
 
+var CURSOR_WIDTH = 0.1; // In blocks
 var BOARD_HEIGHT = 12; // In blocks
 var BOARD_LENGTH = 6;  // In blocks
+
+var BOARD_SPACING = 1.5; // In blocks
 
 var CANVAS_BACKGROUND_COLOR = "#334D66"; // A pretty shade of blue!
 
@@ -15,9 +18,63 @@ var LENIENCY = 0.25 // from 0 to 1, how close to a grid position a falling block
 
 var DANK_MEMES_ENABLED = false; // oh baby!
 
-var Game = function() {
-	this.board = new Board();
+var Game = function(players) {
+
+	this.board_array = [];
+	for (var i = 0; i < players; i++) {
+		this.add_board();
+	}
+
 	this.pressed_keys = new Array();
+	this.input = new Input();
+
+	this.key_to_func = [];
+	this.key_to_name = [];
+
+	this.register_player("Player 1", "WASDJK", this.board_array[0]);
+
+}
+
+Game.prototype.register_player = function(name, controls, board) {
+
+	// oh my god this is so bad
+
+	if (this.input.register(name, board) === null) {
+
+		return null;
+	}
+
+	controls = controls.toUpperCase();
+	controls = controls.split("");
+
+	for (var i = 0; i < 6; i++) {
+		if (this.key_to_func[controls[i]] != undefined) {
+			console.log("Conflict with " + controls[i] + "");
+			console.log(this.key_to_name[controls[i]] + " owns that key");
+			return null;
+		}
+	}
+
+	// Bind keys to hooks
+
+	this.key_to_func[controls[0]] = this.input.up.bind(this.input);
+	this.key_to_func[controls[1]] = this.input.left.bind(this.input);
+	this.key_to_func[controls[2]] = this.input.down.bind(this.input);
+	this.key_to_func[controls[3]] = this.input.right.bind(this.input);
+	this.key_to_func[controls[4]] = this.input.switch.bind(this.input);
+	this.key_to_func[controls[5]] = this.input.raise.bind(this.input);
+
+	this.key_to_name[controls[0]] = name;
+	this.key_to_name[controls[1]] = name;
+	this.key_to_name[controls[2]] = name;
+	this.key_to_name[controls[3]] = name;
+	this.key_to_name[controls[4]] = name;
+	this.key_to_name[controls[5]] = name;
+}
+
+Game.prototype.add_board = function() {
+
+	this.board_array.push(new Board(this.board_array.length));
 }
 
 /**
@@ -25,79 +82,90 @@ var Game = function() {
  * Draws the entire game.
  */
 Game.prototype.draw = function(accumulator) {
-	
+
 	// start with a screen clear
 	ctx.fillStyle = CANVAS_BACKGROUND_COLOR;
 	ctx.fillRect( 0 , 0 , window.innerWidth , window.innerHeight );
 	
-	// Draw the board background.
-	b_c = Game.get_board_coordinates();
-	ctx.fillStyle = EMPTY_BLOCK_COLOR;
-	ctx.fillRect(b_c.left, b_c.top, b_c.length, b_c.height);
-	
-	bot = b_c.top + b_c.height;
-	
-	block_height = b_c.height / BOARD_HEIGHT;
-	block_length = b_c.length / BOARD_LENGTH;
-	
-	// Draw the blocks.
-	for (var row = 0; row < BOARD_HEIGHT; row++) {
-		for (var col = 0; col < BOARD_LENGTH; col++) {
-			
-			if (!this.board.block[row][col].empty()) {
+	// For each board
+	for (var player = 0; player < this.board_array.length; player++){
+
+		// Draw the board background.
+		b_c = this.get_board_coordinates(player);
+
+		ctx.fillStyle = EMPTY_BLOCK_COLOR;
+		ctx.fillRect(b_c.left, b_c.top, b_c.length, b_c.height);
+
+		bot = b_c.top + b_c.height;
+
+		block_height = b_c.height / BOARD_HEIGHT;
+		block_length = b_c.length / BOARD_LENGTH;
+
+		// Draw the blocks.
+		for (var row = 0; row < BOARD_HEIGHT; row++) {
+			for (var col = 0; col < BOARD_LENGTH; col++) {
 				
-				var block = this.board.block[row][col].color;
-				
-				// If the block is in clearing, we light it up!
-				if (this.board.block[row][col].get_state() == Block.StateEnum.CLEAR) {
-					block = block.replace("b", "f");
+				if (!this.board_array[player].block[row][col].empty()) {
+					
+					var block = this.board_array[player].block[row][col].color;
+					
+					// If the block is in clearing, we light it up!
+					if (this.board_array[player].block[row][col].get_state() == Block.StateEnum.CLEAR) {
+						block = block.replace("b", "f");
+					}
+					
+					// Shift the block depending on how far it is into a fall.
+					var relative_position = this.board_array[player].block[row][col].relative_position();
+					
+					ctx.fillStyle = block;
+					ctx.fillRect(
+						b_c.left + col * block_length,
+						bot - (row + 1 + relative_position) * block_height,
+						block_length, block_height);
 				}
 				
-				// Shift the block depending on how far it is into a fall.
-				var relative_position = this.board.block[row][col].relative_position();
-				
-				ctx.fillStyle = block;
-				ctx.fillRect(
-					b_c.left + col * block_length,
-					bot - (row + 1 + relative_position) * block_height,
-					block_length, block_height);
 			}
-			
 		}
-	}
-	
-	// Draw cursor
-	var cursor_width = 5;
-	ctx.lineWidth = cursor_width;
-	ctx.fillStyle = "#000000";
-	ctx.strokeRect(
-				b_c.left + this.board.cursor.x * block_length - cursor_width / 2,
-				bot - (this.board.cursor.y + 1) * block_height - cursor_width / 2,
-				block_length * 2 + cursor_width, block_height + cursor_width);
-	
+
+		// Draw cursor
+		var cursor_width =  CURSOR_WIDTH * b_c.length / BOARD_LENGTH;
+		ctx.lineWidth = cursor_width;
+		ctx.fillStyle = "#000000";
+		ctx.strokeRect(
+					b_c.left + this.board_array[player].cursor.x * block_length - cursor_width / 2,
+					bot - (this.board_array[player].cursor.y + 1) * block_height - cursor_width / 2,
+					block_length * 2 + cursor_width, block_height + cursor_width);
+
+		ctx.fillStyle = "#CCB299"
+		ctx.font = b_c.length/15 + "px sans-serif"
+		ctx.fillText("Board " + player + ": " + this.input.get_name(this.board_array[player]), b_c.left, b_c.top + b_c.height + b_c.length/15)
+	}	
 }
 
 /**
  * Gets canvas coordinates of where the top left of the board should be.
  */
-Game.get_board_coordinates = function() {
+Game.prototype.get_board_coordinates = function(player) {
 	
 	// First, find the exact center of the screen!
 	center = {"x": window.innerWidth / 2, "y": window.innerHeight / 2}
 	
-	// Now, find the biggest box dimensions that can fit.
-	if (window.innerHeight / window.innerWidth < BOARD_HEIGHT / BOARD_LENGTH) // Limited by screen height.
+	// Now, find the biggest box dimensions that can fit.        \/\/\/\/ This can probably be simplified
+	if (window.innerHeight / window.innerWidth < BOARD_HEIGHT / (this.board_array.length * BOARD_LENGTH + (this.board_array.length - 1) * BOARD_SPACING)) // Limited by screen height.
 	{
 		box_height = window.innerHeight * 0.9;
 		box_length = box_height / BOARD_HEIGHT * BOARD_LENGTH;
 	} else {
-		box_length = window.innerWidth * 0.9;
+
+		// TODO: Fingers weak, code's spaghetti
+		box_length = window.innerWidth / (this.board_array.length + (this.board_array.length - 1) * BOARD_SPACING/BOARD_LENGTH) * 0.9;
 		box_height = box_length / BOARD_LENGTH * BOARD_HEIGHT;
 	}
 	
 	// Return JSON object containing proper canvas coordinates to draw board.
 	return {
-		"left": center.x - box_length / 2,
+		"left": center.x - (this.board_array.length * box_length + (this.board_array.length - 1) * box_length * BOARD_SPACING / BOARD_LENGTH) / 2 // Goto very left
+		      + player * (box_length + box_length * BOARD_SPACING / BOARD_LENGTH), // Offset for player
 		"top" : center.y - box_height / 2,
 		"length" : box_length,
 		"height" : box_height
@@ -110,41 +178,19 @@ Game.get_board_coordinates = function() {
  */
 Game.prototype.keydown_handler = function(key) {
 	
+	// Figure out a way to tie this back into removing spam
 	if (this.pressed_keys.indexOf(key) != -1) {
 		console.log("You are pressing a key that is held down!");
 		return null;
 	}
-	
-	if (key == "W" || key == "&") {
-		if (this.board.cursor.y < BOARD_HEIGHT - 1) {
-			this.board.cursor.y += 1;
-			SoundPlayer.play_move();
-		}
-	} else if (key == "S" || key == "(") {
-		if (this.board.cursor.y > 0) {
-			this.board.cursor.y -= 1;
-			SoundPlayer.play_move();
-		}
-	} else if (key == "A" || key == "%") {
-		if (this.board.cursor.x > 0) {
-			this.board.cursor.x -= 1;
-			SoundPlayer.play_move();
-		}
-	} else if (key == "D" || key == "'") {
-		if (this.board.cursor.x < BOARD_LENGTH - 2) {
-			this.board.cursor.x += 1;
-			SoundPlayer.play_move();
-		}
-	} else if (key == " ") {
-		this.ready_to_swap = false;
-		this.board.swap();
-		this.pressed_keys.push(key);
-	} else {
-		this.board.raise();
-		SoundPlayer.play_move();
-		this.pressed_keys.push(key);
+
+	// Calls function bound to key
+	// TODO: Rising and switching are spammable again, sorry.
+
+	if (key in this.key_to_func)
+	{
+		this.key_to_func[key](this.key_to_name[key]);
 	}
-	
 }
 
 Game.prototype.keyup_handler = function(key) {
@@ -159,7 +205,10 @@ Game.prototype.keyup_handler = function(key) {
  * Advance the game timer forward a tick! Not much to see here ... yet!
  */
 Game.prototype.update = function(dt) {
-	this.board.update(dt);
+
+	for (var i = 0; i < this.board_array.length; i++) {
+		this.board_array[i].update(dt);
+	}
 }
 
 /**
