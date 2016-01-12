@@ -155,8 +155,8 @@ Game.prototype.draw = function(accumulator) {
 					block_length * 2 + cursor_width, block_height + cursor_width);
 
 		ctx.fillStyle = "#CCB299"
-		ctx.font = b_c.length/15 + "px sans-serif"
-		ctx.fillText("Board " + player + ": " + this.input.get_name(this.board_array[player]), b_c.left, b_c.top + b_c.height + b_c.length/15)
+		ctx.font = b_c.height/30 + "px sans-serif"
+		ctx.fillText("Board " + player + ": " + this.input.get_name(this.board_array[player]), b_c.left, b_c.top + b_c.height + b_c.height/30)
 	}	
 }
 

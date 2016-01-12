@@ -9,13 +9,17 @@ var Ai = function(name, input) {
 
 	this.counter = 0;
 
-	this.inputs_p_second = Math.random() * Math.random() * 195 + 5;
+	this.inputs_p_second = Math.random() * 29 + 1;
 
 	this.board = null;
+
+	this.input_queue = [];
 }
 
 Ai.prototype.update = function(dt) {
 
+	// Get the board for faster access?
+	// IDK its javascript
 	if (this.board == null) {
 		this.board = this.input.get_board(this.name);
 		if (this.board == null)
@@ -24,6 +28,7 @@ Ai.prototype.update = function(dt) {
 		}
 	}
 
+	// TODO: This may cause dt to have a positive feedback loop!
 	this.counter += dt;
 
 	while (this.counter >= 1/this.inputs_p_second) {
@@ -39,31 +44,52 @@ Ai.prototype.update = function(dt) {
 			}
 		}
 
-		if (do_raise) {
+		// Random raising for more visual appeal
+		if (do_raise && Math.random() < 0.1) {
 			this.input.raise(this.name)
 			continue;
 		}
 
-		var temp = Math.random();
-		if (temp < 0.3) {
-			// 30%
+		// Oh boy
+
+		// This is a stack?
+		if (this.input_queue.length == 0) {
+
 			this.input.switch(this.name);
+
+			var target_x = Math.random() * (BOARD_LENGTH-2);
+			var target_y = Math.random() * (BOARD_HEIGHT-1);
+			for (var x = this.board.cursor.x; x < target_x; x++) {
+				this.input_queue.push("right");
+			}
+			for (var x = this.board.cursor.x; x > target_x; x--) {
+				this.input_queue.push("left");
+			}
+			for (var y = this.board.cursor.y; y < target_y; y++) {
+				this.input_queue.push("up");
+			}
+			for (var y = this.board.cursor.y; y > target_y; y--) {
+				this.input_queue.push("down");
+			}
+			continue;
 		}
-		else if (temp < 0.6) {
-			// 30%
-			this.input.left(this.name);
+
+		var instruction = this.input_queue.pop();
+		switch (instruction) {
+			case "up":
+				this.input.up(this.name);
+    			break;
+    		case "left":
+				this.input.left(this.name);
+    			break;
+    		case "down":
+				this.input.down(this.name);
+    			break;
+    		case "right":
+				this.input.right(this.name);
+    			break;
 		}
-		else if (temp < 0.9) {
-			// 30%
-			this.input.right(this.name);
-		}
-		else if (temp < 0.955) {
-			// 5.5%
-			this.input.down(this.name);
-		}
-		else {
-			// 4.5%
-			this.input.up(this.name);
-		}
+
+
 	}
 }
