@@ -2,8 +2,8 @@ var EMPTY_BLOCK_COLOR = "#999999";
 var BLOCK_COLORS = ["#bb0000", "#00bb00", "#bbbb00", "#bb00bb", "#00bbbb"];
 
 var FLOAT_PERIOD = 0.1; // In seconds, how long the block will remain unmoving when swapped into midair.
-var CHAIN_FLOAT_PERIOD = 0.5 // how long the block will remain when something under it is cleared.
-var CLEAR_PERIOD = 1.0; // How long blocks will remain after being cleared.
+var CHAIN_FLOAT_PERIOD = 0.25 // how long the block will remain when something under it is cleared.
+var CLEAR_PERIOD = 1.1; // How long blocks will remain after being cleared.
 var DROP_SPEED = 20; // Blocks per second.
 
 var CURSOR_WIDTH = 0.1; // In blocks
