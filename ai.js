@@ -1,18 +1,21 @@
 console.log ("Looking for really inept bots to play against?");
 console.log ("Try my_game.add_ai()");
-console.log ("You also might want to turn your volume down.")
+console.log ("You also might want to turn your volume down.");
 
 var Ai = function(name, input) {
 
 	this.name = name;
 	this.input = input;
 
-	this.counter = 0;
+	this.backlog_time = 0;
 
-	this.inputs_p_second = Math.random() * 29 + 1;
+	this.inputs_p_second = Math.random() * 19 + 1;
 
 	this.board = null;
 
+	// Queues are really bad in Javascript
+	// Shift/Push beause inputs are added in bulk and removed each frame
+	// Pop/Unshift would cause lag spikes on frames when inputs are queued
 	this.input_queue = [];
 }
 
@@ -28,68 +31,99 @@ Ai.prototype.update = function(dt) {
 		}
 	}
 
-	// TODO: This may cause dt to have a positive feedback loop!
-	this.counter += dt;
+	// In a lag spike, real people should be able predict the future well enough to still make inputs
+	// This lets the AI make moves in the lag spike without it being "cheaty"
 
-	while (this.counter >= 1/this.inputs_p_second) {
-		this.counter -= 1/this.inputs_p_second;
+	this.backlog_time += dt;
 
-		var do_raise = true;
+	// Find a reasonable non-magic formula
+	// REASONING:
+	// Math.pow(dt [operation] foo, bar) | As time between render gets larger, it becomes harder to predict the future
+	// + foo | The value of the magic number is the maximum moves made outside of a lag spike
+	var useful_moves = Math.pow(dt, 1/3) + 2;
 
-		for (var i = 0; i < BOARD_LENGTH; i++) {
-			if (!this.board.block[BOARD_HEIGHT-2][i].empty())
+	for (var moves = Math.min(useful_moves, this.backlog_time * this.inputs_p_second); moves >= 0; moves--) {
+		this.backlog_time -= 1/this.inputs_p_second;
+		this.move();
+	}
+}
+
+Ai.prototype.move = function() {
+
+	if (this.input_queue.length == 0) {
+
+		this.get_instructions();
+	}
+
+	var instruction = this.input_queue.shift();
+	switch (instruction) {
+		case "up":
+			this.input.up(this.name);
+			break;
+		case "left":
+			this.input.left(this.name);
+			break;
+		case "down":
+			this.input.down(this.name);
+			break;
+		case "right":
+			this.input.right(this.name);
+			break;
+		case "switch":
+			this.input.switch(this.name);
+			break;
+		case "raise":
+			this.input.raise(this.name);
+			break;
+	}
+}
+
+Ai.prototype.get_instructions = function() {
+
+	// For every row
+	for (var row = BOARD_HEIGHT-1 - 1; row >= 0; row--) {
+		// Check if row is completely empty
+		for (var column = 0; column < BOARD_LENGTH; column++) {
+			if (!this.board.block[row][column].empty())
 			{
-				do_raise = false;
 				break;
 			}
 		}
-
-		// Random raising for more visual appeal
-		if (do_raise && Math.random() < 0.1) {
-			this.input.raise(this.name)
-			continue;
+		// Completion of previous loop ==> row is empty
+		if (column >= BOARD_LENGTH) {
+			this.input_queue.push("raise");
 		}
-
-		// Oh boy
-
-		// This is a stack?
-		if (this.input_queue.length == 0) {
-
-			this.input.switch(this.name);
-
-			var target_x = Math.random() * (BOARD_LENGTH-2);
-			var target_y = Math.random() * (BOARD_HEIGHT-1);
-			for (var x = this.board.cursor.x; x < target_x; x++) {
-				this.input_queue.push("right");
-			}
-			for (var x = this.board.cursor.x; x > target_x; x--) {
-				this.input_queue.push("left");
-			}
-			for (var y = this.board.cursor.y; y < target_y; y++) {
-				this.input_queue.push("up");
-			}
-			for (var y = this.board.cursor.y; y > target_y; y--) {
-				this.input_queue.push("down");
-			}
-			continue;
+		else {
+			break;
 		}
-
-		var instruction = this.input_queue.pop();
-		switch (instruction) {
-			case "up":
-				this.input.up(this.name);
-    			break;
-    		case "left":
-				this.input.left(this.name);
-    			break;
-    		case "down":
-				this.input.down(this.name);
-    			break;
-    		case "right":
-				this.input.right(this.name);
-    			break;
-		}
-
-
 	}
+
+	var target_x = Math.random() * (BOARD_LENGTH-2);
+	var target_y = Math.random() * (BOARD_HEIGHT-1);
+
+	for (var x = this.board.cursor.x; x < target_x; x++) {
+		this.input_queue.push("right");
+	}
+	for (var x = this.board.cursor.x; x > target_x; x--) {
+		this.input_queue.push("left");
+	}
+	for (var y = this.board.cursor.y; y < target_y; y++) {
+		this.input_queue.push("up");
+	}
+	for (var y = this.board.cursor.y; y > target_y; y--) {
+		this.input_queue.push("down");
+	}
+
+	// Shuffle inputs (looks neat, but is a bad idea for what Im trying to implement)
+
+	for (var i = this.input_queue.length - 1; i >= 0; i--) {
+
+		var j = Math.floor(Math.random() * (i+1));
+
+		var k = this.input_queue[i];
+		this.input_queue[i] = this.input_queue[j];
+		this.input_queue[j] = k;
+	}
+
+	this.input_queue.push("switch");
 }
