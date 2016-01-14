@@ -10,16 +10,18 @@ Input.prototype.register = function(name, board) {
 
 	if (this.get_board(name)) {
 		console.log("Name " + name + " already taken!");
-		return null;
+		return false;
 	}
 
 	if (this.get_name(board)) {
 		console.log("Board already taken by " + this.get_name(board));
-		return null;
+		return false;
 	}
 
 	this.name_to_board[name] = board;
 	this.board_to_name[board] = name;
+
+	return true;
 }
 
 Input.prototype.deregister_name = function(name) {
@@ -55,9 +57,12 @@ Input.prototype.get_name = function(board) {
 
 Input.prototype.up = function(name) {
 
-	if (this.get_board(name) != undefined) {
-		if (this.name_to_board[name].cursor.y < BOARD_HEIGHT - 1) {
-			this.name_to_board[name].cursor.y += 1;
+	var board = this.get_board(name)
+
+	if (board != undefined) {
+		if (board.cursor.y < BOARD_HEIGHT - 1) {
+			board.cursor.y += 1;
+			board.total_moves++;
 			SoundPlayer.play_move();
 		}
 	}
@@ -65,9 +70,12 @@ Input.prototype.up = function(name) {
 
 Input.prototype.down = function(name) {
 
-	if (this.get_board(name) != undefined) {
-		if (this.name_to_board[name].cursor.y > 0) {
-			this.name_to_board[name].cursor.y -= 1;
+	var board = this.get_board(name)
+
+	if (board != undefined) {
+		if (board.cursor.y > 0) {
+			board.cursor.y -= 1;
+			board.total_moves++;
 			SoundPlayer.play_move();
 		}
 	}
@@ -75,9 +83,12 @@ Input.prototype.down = function(name) {
 
 Input.prototype.left = function(name) {
 
-	if (this.get_board(name) != undefined) {
-		if (this.name_to_board[name].cursor.x > 0) {
-			this.name_to_board[name].cursor.x -= 1;
+	var board = this.get_board(name)
+
+	if (board != undefined) {
+		if (board.cursor.x > 0) {
+			board.cursor.x -= 1;
+			board.total_moves++;
 			SoundPlayer.play_move();
 		}
 	}
@@ -85,9 +96,12 @@ Input.prototype.left = function(name) {
 
 Input.prototype.right = function(name) {
 
-	if (this.get_board(name) != undefined) {
-		if (this.name_to_board[name].cursor.x < BOARD_LENGTH - 2) {
-			this.name_to_board[name].cursor.x += 1;
+	var board = this.get_board(name)
+
+	if (board != undefined) {
+		if (board.cursor.x < BOARD_LENGTH - 2) {
+			board.cursor.x += 1;
+			board.total_moves++;
 			SoundPlayer.play_move();
 		}
 	}
@@ -95,15 +109,20 @@ Input.prototype.right = function(name) {
 
 Input.prototype.switch = function(name)	{
 
-	if (this.get_board(name) != undefined) {
-		this.name_to_board[name].swap();
+	var board = this.get_board(name)
+
+	if (board != undefined) {
+		board.swap();
+		board.total_moves++;
 	}
 }
 
 Input.prototype.raise = function(name)	{
 
-	if (this.get_board(name) != undefined) {
+	var board = this.get_board(name)
+
+	if (board != undefined) {
 		SoundPlayer.play_move();
-		this.name_to_board[name].raise();
+		board.raise();
 	}
 }

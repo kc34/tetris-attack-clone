@@ -25,6 +25,8 @@ var Game = function(players) {
 		this.add_board();
 	}
 
+	this.ais = [];
+
 	this.pressed_keys = new Array();
 	this.input = new Input();
 
@@ -41,7 +43,7 @@ Game.prototype.register_player = function(name, controls, board) {
 
 	if (this.input.register(name, board) === null) {
 
-		return null;
+		return false;
 	}
 
 	controls = controls.toUpperCase();
@@ -51,7 +53,7 @@ Game.prototype.register_player = function(name, controls, board) {
 		if (this.key_to_func[controls[i]] != undefined) {
 			console.log("Conflict with " + controls[i] + "");
 			console.log(this.key_to_name[controls[i]] + " owns that key");
-			return null;
+			return false;
 		}
 	}
 
@@ -70,11 +72,27 @@ Game.prototype.register_player = function(name, controls, board) {
 	this.key_to_name[controls[3]] = name;
 	this.key_to_name[controls[4]] = name;
 	this.key_to_name[controls[5]] = name;
+
+	return true;
 }
 
 Game.prototype.add_board = function() {
 
-	this.board_array.push(new Board(this.board_array.length));
+	var board = new Board(this.board_array.length);
+	this.board_array.push(board);
+	return board;
+}
+
+Game.prototype.add_ai = function() {
+
+	var board = this.add_board();
+
+	var name = "AI " + this.ais.length;
+	this.input.register(name, board);
+
+	var ai = new Ai(name, this.input);
+	this.ais.push(ai);
+	return ai;
 }
 
 /**
@@ -136,9 +154,21 @@ Game.prototype.draw = function(accumulator) {
 					bot - (this.board_array[player].cursor.y + 1) * block_height - cursor_width / 2,
 					block_length * 2 + cursor_width, block_height + cursor_width);
 
-		ctx.fillStyle = "#CCB299"
-		ctx.font = b_c.length/15 + "px sans-serif"
-		ctx.fillText("Board " + player + ": " + this.input.get_name(this.board_array[player]), b_c.left, b_c.top + b_c.height + b_c.length/15)
+		ctx.fillStyle = "#E6DDAC";
+		ctx.font = b_c.height/30 + "px sans-serif";
+		ctx.textAlign="start";
+		ctx.fillText("Board " + player + ": " + this.input.get_name(this.board_array[player]), b_c.left, b_c.top + b_c.height + b_c.height/30);
+
+		// Fun facts!
+		ctx.font = b_c.height/60 + "px sans-serif";
+		ctx.textAlign="end";
+
+		var efficiency = this.board_array[player].total_blocks / this.board_array[player].total_moves;
+		ctx.fillText("Efficiency!", b_c.left + b_c.length, b_c.top + b_c.height + b_c.height/60);
+
+		// TODO: Do some stuff with color to make players feel bad
+		// ctx.fillStyle = "#E6DDAC";
+		ctx.fillText(Math.round(efficiency*1000)/1000 + " blocks / move", b_c.left + b_c.length, b_c.top + b_c.height + b_c.height/30);
 	}	
 }
 
@@ -208,6 +238,10 @@ Game.prototype.update = function(dt) {
 
 	for (var i = 0; i < this.board_array.length; i++) {
 		this.board_array[i].update(dt);
+	}
+
+	for (var i = 0; i < this.ais.length; i++) {
+		this.ais[i].update(dt);
 	}
 }
 

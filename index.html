@@ -19,6 +19,7 @@ html, body {
 <script src="board.js"></script>
 <script src="block.js"></script>
 <script src="input.js"></script>
+<script src="ai.js"></script>
 <script src="sound/soundplayer.js"></script>
 
 <script>
@@ -90,7 +91,7 @@ console.log("Try new_board(x, y)");
 var new_board = function(x, y) {
 	BOARD_HEIGHT = y;
 	BOARD_LENGTH = x;
-	my_game = new Game();
+	my_game = new Game(1);
 }
 
 </script>

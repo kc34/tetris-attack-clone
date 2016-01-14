@@ -13,6 +13,12 @@ var Board = function(board_number) {
 	
 	this.current_chain = 1;
 
+	// Stats!
+	this.highest_chain = 0;
+	this.total_clears = 0;
+	this.total_blocks = 0;
+	this.total_moves = 0;
+
 	this.board_number = board_number;
 }
 
@@ -133,6 +139,7 @@ Board.prototype.checkClear = function() {
 			
 			if (h[row][col] == true || v[col][row] == true) {
 				clear_found = true;
+				this.total_blocks++;
 				if (this.block[row][col].chain_material) {
 					chain_found = true;
 				}
@@ -142,10 +149,14 @@ Board.prototype.checkClear = function() {
 		}
 	}
 	
-	if (clear_found) SoundPlayer.play_clear();
-	
+	if (clear_found) {
+		SoundPlayer.play_clear();
+		this.total_clears++;
+	}
+
 	if (chain_found) {
 		this.current_chain += 1;
+		this.highest_chain = Math.max(this.current_chain,this.highest_chain);
 		console.log("BOARD #" + this.board_number + " " + this.current_chain + "x chain!!!");
 		SoundPlayer.play_chain(this.current_chain);
 	}
