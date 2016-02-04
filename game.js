@@ -119,6 +119,9 @@ Game.prototype.draw = function(accumulator) {
 		block_height = b_c.height / BOARD_HEIGHT;
 		block_length = b_c.length / BOARD_LENGTH;
 
+		// Get the board raise offset
+		var fractional_raise = this.board_array[player].fractional_raise;
+
 		// Draw the blocks.
 		for (var row = 0; row < BOARD_HEIGHT; row++) {
 			for (var col = 0; col < BOARD_LENGTH; col++) {
@@ -133,8 +136,10 @@ Game.prototype.draw = function(accumulator) {
 					}
 					
 					// Shift the block depending on how far it is into a fall.
+					// Then, shift the block based on the autoraise of the board.
 					var relative_position = this.board_array[player].block[row][col].relative_position();
-					
+					relative_position += fractional_raise;
+
 					ctx.fillStyle = block;
 					ctx.fillRect(
 						b_c.left + col * block_length,
@@ -145,19 +150,50 @@ Game.prototype.draw = function(accumulator) {
 			}
 		}
 
+		// Draw to be inserted blocks
+		for (var col = 0; col < BOARD_LENGTH; col++) {
+			var block = this.board_array[player].raising_blocks[col].color;
+			block = block.replace("b", "8");
+
+			var relative_position = fractional_raise;
+
+			ctx.fillStyle = block;
+			ctx.fillRect(
+				b_c.left + col * block_length,
+				bot - (relative_position) * block_height,
+				block_length, block_height);
+		}
+
+		// Redraw Top and Bottom :/
+		ctx.fillStyle = CANVAS_BACKGROUND_COLOR;
+		ctx.fillRect(
+			b_c.left,
+			b_c.top - block_height,
+			block_length * BOARD_LENGTH,
+			block_height);
+		ctx.fillRect(
+			b_c.left,
+			bot,
+			block_length * BOARD_LENGTH,
+			block_height);
+
 		// Draw cursor
 		var cursor_width =  CURSOR_WIDTH * b_c.length / BOARD_LENGTH;
 		ctx.lineWidth = cursor_width;
 		ctx.fillStyle = "#000000";
 		ctx.strokeRect(
 					b_c.left + this.board_array[player].cursor.x * block_length - cursor_width / 2,
-					bot - (this.board_array[player].cursor.y + 1) * block_height - cursor_width / 2,
+					bot - (this.board_array[player].cursor.y + fractional_raise + 1) * block_height - cursor_width / 2,
 					block_length * 2 + cursor_width, block_height + cursor_width);
 
+		// Board IDer
 		ctx.fillStyle = "#E6DDAC";
 		ctx.font = b_c.height/30 + "px sans-serif";
 		ctx.textAlign="start";
 		ctx.fillText("Board " + player + ": " + this.input.get_name(this.board_array[player]), b_c.left, b_c.top + b_c.height + b_c.height/30);
+
+		// Stop! HAMMERTIME
+		ctx.fillText(Math.floor(this.board_array[player].clear_lag * 100)/100 + "", b_c.left + b_c.length/30, b_c.top + b_c.height/30);
 
 		// Fun facts!
 		ctx.font = b_c.height/60 + "px sans-serif";

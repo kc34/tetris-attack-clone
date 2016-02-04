@@ -122,7 +122,7 @@ Input.prototype.raise = function(name)	{
 	var board = this.get_board(name)
 
 	if (board != undefined) {
-		SoundPlayer.play_move();
-		board.raise();
+		board.force_raise = true;
+		board.clear_lag = 0;
 	}
 }
