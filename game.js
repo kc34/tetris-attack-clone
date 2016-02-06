@@ -13,12 +13,15 @@ var BOARD_LENGTH = 6;  // In blocks
 var BOARD_SPACING = 1.5; // In blocks
 
 var CANVAS_BACKGROUND_COLOR = "#334D66"; // A pretty shade of blue!
+var TEXT_COLOR = "#E6DDAC"
 
 var LENIENCY = 0.25 // from 0 to 1, how close to a grid position a falling block must be to be swapped!
 
 var DANK_MEMES_ENABLED = false; // oh baby!
 
 var Game = function(players) {
+
+	Screen.apply(this, []);
 
 	this.board_array = [];
 	for (var i = 0; i < players; i++) {
@@ -36,6 +39,10 @@ var Game = function(players) {
 	this.register_player("Player 1", "WASDJK", this.board_array[0]);
 
 }
+
+// Inherit from Screen 
+Game.prototype = Object.create(Screen.prototype);
+Game.prototype.constructor = Game;
 
 Game.prototype.register_player = function(name, controls, board) {
 
@@ -121,6 +128,15 @@ Game.prototype.draw = function(accumulator) {
 
 		// Get the board raise offset
 		var fractional_raise = this.board_array[player].fractional_raise;
+		//fractional_raise = 0;
+
+		// LOL remove me
+		if (this.board_array[player].fractional_raise < 0) {
+			ctx.fillStyle = TEXT_COLOR;
+			ctx.font = b_c.height/12 + "px sans-serif";
+			ctx.textAlign="center";
+			ctx.fillText("YOU LOST", b_c.left + b_c.length/2, b_c.top + b_c.height/2);
+		}
 
 		// Draw the blocks.
 		for (var row = 0; row < BOARD_HEIGHT; row++) {
@@ -187,9 +203,9 @@ Game.prototype.draw = function(accumulator) {
 					block_length * 2 + cursor_width, block_height + cursor_width);
 
 		// Board IDer
-		ctx.fillStyle = "#E6DDAC";
-		ctx.font = b_c.height/30 + "px sans-serif";
 		ctx.textAlign="start";
+		ctx.fillStyle = TEXT_COLOR;
+		ctx.font = b_c.height/30 + "px sans-serif";
 		ctx.fillText("Board " + player + ": " + this.input.get_name(this.board_array[player]), b_c.left, b_c.top + b_c.height + b_c.height/30);
 
 		// Stop! HAMMERTIME

@@ -21,7 +21,10 @@ var Board = function(board_number) {
 	this.clearing = false; // Prevents clear_lag from depleting
 	this.clear_lag = 2; // Seconds
 	this.autoraise_speed = 0.2; // Blocks per second
+	this.autoraise_acceleration = 0.01 // Blocks per second^2
 	this.fractional_raise = 0;
+
+	this.death_grace = false;
 	
 	this.current_chain = 1;
 
@@ -310,6 +313,7 @@ Board.prototype.trueRaise = function() {
 	for (var j = 0; j < this.WIDTH; j++) {
 		if (!this.block[this.HEIGHT - 1][j].empty()) {
 			this.clear_lag = 2;
+			this.death_grace = true;
 			break;
 		}
 	}
@@ -328,6 +332,8 @@ Board.prototype.trueRaise = function() {
 }
 
 Board.prototype.raise = function(dt) {
+
+	this.autoraise_speed += this.autoraise_acceleration * dt;
 
 	if (this.force_raise) {
 		this.fractional_raise += dt * FORCE_RAISE_SPEED;
@@ -356,17 +362,34 @@ Board.prototype.raise = function(dt) {
 		this.force_raise = false;
 	}
 
-	// Check for a loss.
-	var loss = false;
-	if (this.clear_lag == 0) {
-		for (var j = 0; j < this.WIDTH; j++) {
-			if (!this.block[this.HEIGHT - 1][j].empty()) {
-				loss = true;
-				break;
+	// Hey
+
+	if (this.death_grace) {
+
+		// Check for a loss.
+		if (this.clear_lag == 0) {
+			console.log("BOARD #" + this.board_number + " " + "You lose!!");
+			this.fractional_raise += (-1 * this.autoraise_speed - this.HEIGHT/5) * dt;
+		}
+		else {
+			var all_empty = true;
+			for (var j = 0; j < this.WIDTH; j++) {
+				if (!this.block[this.HEIGHT - 1][j].empty()) {
+					all_empty = false;
+				}
+			}
+			if (all_empty)
+			{
+				this.death_grace = false;
+				this.clear_lag = 0;
 			}
 		}
 	}
-	if (loss) { console.log("BOARD #" + this.board_number + " " + "You lose!!"); }
+
+	// Dont put the cursor above the board
+	if (this.cursor.y + 1 >= this.HEIGHT && !this.death_grace) {
+		this.cursor.y -= 1;
+	}
 }
 
 
