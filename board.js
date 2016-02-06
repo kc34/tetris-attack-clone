@@ -1,15 +1,30 @@
+FORCE_RAISE_SPEED = 3;
+
 var Board = function(board_number) {
 	
 	this.HEIGHT = BOARD_HEIGHT;
 	this.WIDTH = BOARD_LENGTH;
 	
 	this.block = matrix_make(this.HEIGHT, this.WIDTH, EMPTY_BLOCK);
-	
+	this.raising_blocks = this.genNextRow(); // That grammar though
+
 	this.cursor = { "x" : 2, "y" : -1 };
-	
+
+	// Init Board
 	for (var x = 0; x < this.HEIGHT / 2; x++) {
-		this.raise();
+		this.trueRaise();
 	}
+
+	// Rising Board Stuff	
+	this.force_raise = false;
+
+	this.clearing = false; // Prevents clear_lag from depleting
+	this.clear_lag = 2; // Seconds
+	this.autoraise_speed = 0.2; // Blocks per second
+	this.autoraise_acceleration = 0.01 // Blocks per second^2
+	this.fractional_raise = 0;
+
+	this.death_grace = false;
 	
 	this.current_chain = 1;
 
@@ -34,6 +49,8 @@ Board.prototype.toString = function() {
  */
 Board.prototype.update = function(dt) {
 	
+	this.raise(dt);
+
 	// We need to drop blocks!
 	this.fall();
 	
@@ -152,6 +169,7 @@ Board.prototype.checkClear = function() {
 	if (clear_found) {
 		SoundPlayer.play_clear();
 		this.total_clears++;
+		this.clear_lag = Math.max(1,this.clear_lag);
 	}
 
 	if (chain_found) {
@@ -159,6 +177,8 @@ Board.prototype.checkClear = function() {
 		this.highest_chain = Math.max(this.current_chain,this.highest_chain);
 		console.log("BOARD #" + this.board_number + " " + this.current_chain + "x chain!!!");
 		SoundPlayer.play_chain(this.current_chain);
+
+		this.clear_lag += this.current_chain/10;
 	}
 	
 	// At this point, nothing at rest can be chain material.
@@ -175,9 +195,15 @@ Board.prototype.checkClear = function() {
 		}
 	}
 	
-	if (non_rests == 0 && this.current_chain != 1) {
-		this.current_chain = 1;
-		console.log("BOARD #" + this.board_number + " " + "Chain over");
+	if (non_rests == 0) {
+		this.clearing = false;
+		if (this.current_chain != 1) {
+			this.current_chain = 1;
+			console.log("BOARD #" + this.board_number + " " + "Chain over");
+		}
+	}
+	else {
+		this.clearing = true;
 	}
 }
 
@@ -237,38 +263,24 @@ Board.prototype.fall = function() {
 	}
 	
 }
-Board.prototype.raise = function() {
-	
-	// Check for a loss.
-	var loss = false;
-	for (var j = 0; j < this.WIDTH; j++) {
-		if (!this.block[this.HEIGHT - 1][j].empty()) {
-			loss = true;
-		}
-	}
-	if (loss) { console.log("BOARD #" + this.board_number + " " + "You lose!!"); }
-	
-	// Raise blocks from top to bottom.
-	for (var i = this.HEIGHT - 2; i >= 0; i--) {
-		for (var j = 0; j < this.WIDTH; j++) {
-			this.block[i + 1][j] = this.block[i][j];
-			this.block[i][j] = EMPTY_BLOCK;
-		}
-	}
+
+Board.prototype.genNextRow = function() {
+
+	var next_row = [];
 	
 	for (var j = 0; j < this.WIDTH; j++) {
 		var possible_colors = new Array();
 		for (color in BLOCK_COLORS) {
 			var color_ok = true;
 			// See if color would cause a clear.
-			if (this.block[2][j].color == this.block[1][j].color) {
-				if (BLOCK_COLORS[color] == this.block[2][j].color) {
+			if (this.block[1][j].color == this.block[0][j].color) {
+				if (BLOCK_COLORS[color] == this.block[1][j].color) {
 					color_ok = false;
 				}
 			}
 			if (j >= 2) {
-				if (this.block[0][j - 2].color == this.block[0][j - 1].color) {
-					if (BLOCK_COLORS[color] == this.block[0][j - 1].color) {
+				if (next_row[j - 2].color == next_row[j - 1].color) {
+					if (BLOCK_COLORS[color] == next_row[j - 1].color) {
 						color_ok = false;
 					}
 				}
@@ -278,15 +290,106 @@ Board.prototype.raise = function() {
 			}
 		}
 		if (possible_colors.length == 0) {
-			this.block[0][j] = Block.random();
+			next_row[j] = Block.random();
 		} else {
-			this.block[0][j] = new Block(possible_colors);
+			next_row[j] = new Block(possible_colors);
 		}
 	}
+
+	return next_row;
+}
+
+Board.prototype.trueRaise = function() {
+
+	// Shift every block up
+	for (var i = this.HEIGHT - 2; i >= 0; i--) {
+		for (var j = 0; j < this.WIDTH; j++) {
+			this.block[i + 1][j] = this.block[i][j];
+			this.block[i][j] = EMPTY_BLOCK;
+		}
+	}
+
+	// Give grace period when about to lose!
+	for (var j = 0; j < this.WIDTH; j++) {
+		if (!this.block[this.HEIGHT - 1][j].empty()) {
+			this.clear_lag = 2;
+			this.death_grace = true;
+			break;
+		}
+	}
+
+	// Add new blocks to the front
+	for (var j = 0; j < this.WIDTH; j++)
+	{
+		this.block[0][j] = this.raising_blocks[j];
+	}
+	this.raising_blocks = this.genNextRow();
+
+	// Move the cursor up one
 	if (this.cursor.y + 1 < this.HEIGHT) {
 		this.cursor.y += 1;
 	}
-	
+}
+
+Board.prototype.raise = function(dt) {
+
+	this.autoraise_speed += this.autoraise_acceleration * dt;
+
+	if (this.force_raise) {
+		this.fractional_raise += dt * FORCE_RAISE_SPEED;
+	}
+	else {
+
+		if (!this.clearing) {
+			// Auto raise board
+			if (this.clear_lag > 0) {
+				this.clear_lag -= dt;
+				if (this.clear_lag < 0) {
+					this.fractional_raise += -this.clear_lag * this.autoraise_speed;
+					this.clear_lag = 0;
+				}
+			}
+			else {
+				this.fractional_raise += dt * this.autoraise_speed;
+			}
+		}
+	}	
+
+	while (this.fractional_raise > 1) {
+		this.trueRaise();
+
+		this.fractional_raise--;
+		this.force_raise = false;
+	}
+
+	// Hey
+
+	if (this.death_grace) {
+
+		// Check for a loss.
+		if (this.clear_lag == 0) {
+			console.log("BOARD #" + this.board_number + " " + "You lose!!");
+			this.fractional_raise += (-1 * this.autoraise_speed - this.HEIGHT/5) * dt;
+		}
+		else {
+			var all_empty = true;
+			for (var j = 0; j < this.WIDTH; j++) {
+				if (!this.block[this.HEIGHT - 1][j].empty()) {
+					all_empty = false;
+				}
+			}
+			if (all_empty)
+			{
+				this.death_grace = false;
+				this.clear_lag = 0;
+			}
+		}
+	}
+
+	// Dont put the cursor above the board
+	if (this.cursor.y + 1 >= this.HEIGHT && !this.death_grace) {
+		this.cursor.y -= 1;
+	}
 }
 
 
