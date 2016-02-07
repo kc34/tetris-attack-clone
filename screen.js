@@ -7,6 +7,10 @@ var Screen = function() {
 	}
 }
 
+Screen.prototype.update = function(dt) {
+	console.log("Abstract screen");
+}
+
 Screen.prototype.draw = function(accumulator) {
 	console.log("Abstract screen");
 }

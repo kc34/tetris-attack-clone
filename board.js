@@ -25,7 +25,8 @@ var Board = function(board_number) {
 	this.fractional_raise = 0;
 
 	this.death_grace = false;
-	
+	this.has_lost = 0; // Seconds from lose
+
 	this.current_chain = 1;
 
 	// Stats!
@@ -338,6 +339,11 @@ Board.prototype.raise = function(dt) {
 	if (this.force_raise) {
 		this.fractional_raise += dt * FORCE_RAISE_SPEED;
 	}
+	else if (this.has_lost)
+	{
+		this.has_lost += dt;
+		this.fractional_raise -= dt * this.HEIGHT / 5;
+	}
 	else {
 
 		if (!this.clearing) {
@@ -369,7 +375,8 @@ Board.prototype.raise = function(dt) {
 		// Check for a loss.
 		if (this.clear_lag == 0) {
 			console.log("BOARD #" + this.board_number + " " + "You lose!!");
-			this.fractional_raise += (-1 * this.autoraise_speed - this.HEIGHT/5) * dt;
+			this.has_lost = 0.0001;
+			this.death_grace = false;
 		}
 		else {
 			var all_empty = true;

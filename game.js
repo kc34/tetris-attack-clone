@@ -115,6 +115,8 @@ Game.prototype.draw = function(accumulator) {
 	// For each board
 	for (var player = 0; player < this.board_array.length; player++){
 
+		var current_board = this.board_array[player];
+
 		// Draw the board background.
 		b_c = this.get_board_coordinates(player);
 
@@ -127,14 +129,14 @@ Game.prototype.draw = function(accumulator) {
 		block_length = b_c.length / BOARD_LENGTH;
 
 		// Get the board raise offset
-		var fractional_raise = this.board_array[player].fractional_raise;
+		var fractional_raise = current_board.fractional_raise;
 		//fractional_raise = 0;
 
 		// LOL remove me
-		if (this.board_array[player].fractional_raise < 0) {
+		if (current_board.has_lost) {
 			ctx.fillStyle = TEXT_COLOR;
 			ctx.font = b_c.height/12 + "px sans-serif";
-			ctx.textAlign="center";
+			ctx.textAlign = "center";
 			ctx.fillText("YOU LOST", b_c.left + b_c.length/2, b_c.top + b_c.height/2);
 		}
 
@@ -142,18 +144,18 @@ Game.prototype.draw = function(accumulator) {
 		for (var row = 0; row < BOARD_HEIGHT; row++) {
 			for (var col = 0; col < BOARD_LENGTH; col++) {
 				
-				if (!this.board_array[player].block[row][col].empty()) {
+				if (!current_board.block[row][col].empty()) {
 					
-					var block = this.board_array[player].block[row][col].color;
+					var block = current_board.block[row][col].color;
 					
 					// If the block is in clearing, we light it up!
-					if (this.board_array[player].block[row][col].get_state() == Block.StateEnum.CLEAR) {
+					if (current_board.block[row][col].get_state() == Block.StateEnum.CLEAR) {
 						block = block.replace("b", "f");
 					}
 					
 					// Shift the block depending on how far it is into a fall.
 					// Then, shift the block based on the autoraise of the board.
-					var relative_position = this.board_array[player].block[row][col].relative_position();
+					var relative_position = current_board.block[row][col].relative_position();
 					relative_position += fractional_raise;
 
 					ctx.fillStyle = block;
@@ -168,7 +170,7 @@ Game.prototype.draw = function(accumulator) {
 
 		// Draw to be inserted blocks
 		for (var col = 0; col < BOARD_LENGTH; col++) {
-			var block = this.board_array[player].raising_blocks[col].color;
+			var block = current_board.raising_blocks[col].color;
 			block = block.replace("b", "8");
 
 			var relative_position = fractional_raise;
@@ -198,24 +200,24 @@ Game.prototype.draw = function(accumulator) {
 		ctx.lineWidth = cursor_width;
 		ctx.fillStyle = "#000000";
 		ctx.strokeRect(
-					b_c.left + this.board_array[player].cursor.x * block_length - cursor_width / 2,
-					bot - (this.board_array[player].cursor.y + fractional_raise + 1) * block_height - cursor_width / 2,
+					b_c.left + current_board.cursor.x * block_length - cursor_width / 2,
+					bot - (current_board.cursor.y + fractional_raise + 1) * block_height - cursor_width / 2,
 					block_length * 2 + cursor_width, block_height + cursor_width);
 
 		// Board IDer
-		ctx.textAlign="start";
+		ctx.textAlign = "start";
 		ctx.fillStyle = TEXT_COLOR;
 		ctx.font = b_c.height/30 + "px sans-serif";
-		ctx.fillText("Board " + player + ": " + this.input.get_name(this.board_array[player]), b_c.left, b_c.top + b_c.height + b_c.height/30);
+		ctx.fillText("Board " + player + ": " + this.input.get_name(current_board), b_c.left, b_c.top + b_c.height + b_c.height/30);
 
 		// Stop! HAMMERTIME
-		ctx.fillText(Math.floor(this.board_array[player].clear_lag * 100)/100 + "", b_c.left + b_c.length/30, b_c.top + b_c.height/30);
+		ctx.fillText(Math.floor(current_board.clear_lag * 100)/100 + "", b_c.left + b_c.length/30, b_c.top + b_c.height/30);
 
 		// Fun facts!
 		ctx.font = b_c.height/60 + "px sans-serif";
-		ctx.textAlign="end";
+		ctx.textAlign = "end";
 
-		var efficiency = this.board_array[player].total_blocks / this.board_array[player].total_moves;
+		var efficiency = current_board.total_blocks / current_board.total_moves;
 		ctx.fillText("Efficiency!", b_c.left + b_c.length, b_c.top + b_c.height + b_c.height/60);
 
 		// TODO: Do some stuff with color to make players feel bad
