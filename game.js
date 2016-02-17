@@ -13,12 +13,15 @@ var BOARD_LENGTH = 6;  // In blocks
 var BOARD_SPACING = 1.5; // In blocks
 
 var CANVAS_BACKGROUND_COLOR = "#334D66"; // A pretty shade of blue!
+var TEXT_COLOR = "#E6DDAC"
 
 var LENIENCY = 0.25 // from 0 to 1, how close to a grid position a falling block must be to be swapped!
 
 var DANK_MEMES_ENABLED = false; // oh baby!
 
 var Game = function(players) {
+
+	Screen.apply(this, []);
 
 	this.board_array = [];
 	for (var i = 0; i < players; i++) {
@@ -36,6 +39,10 @@ var Game = function(players) {
 	this.register_player("Player 1", "WASDJK", this.board_array[0]);
 
 }
+
+// Inherit from Screen 
+Game.prototype = Object.create(Screen.prototype);
+Game.prototype.constructor = Game;
 
 Game.prototype.register_player = function(name, controls, board) {
 
@@ -108,6 +115,8 @@ Game.prototype.draw = function(accumulator) {
 	// For each board
 	for (var player = 0; player < this.board_array.length; player++){
 
+		var current_board = this.board_array[player];
+
 		// Draw the board background.
 		b_c = this.get_board_coordinates(player);
 
@@ -119,22 +128,36 @@ Game.prototype.draw = function(accumulator) {
 		block_height = b_c.height / BOARD_HEIGHT;
 		block_length = b_c.length / BOARD_LENGTH;
 
+		// Get the board raise offset
+		var fractional_raise = current_board.fractional_raise;
+		//fractional_raise = 0;
+
+		// LOL remove me
+		if (current_board.has_lost) {
+			ctx.fillStyle = TEXT_COLOR;
+			ctx.font = b_c.height/12 + "px sans-serif";
+			ctx.textAlign = "center";
+			ctx.fillText("YOU LOST", b_c.left + b_c.length/2, b_c.top + b_c.height/2);
+		}
+
 		// Draw the blocks.
 		for (var row = 0; row < BOARD_HEIGHT; row++) {
 			for (var col = 0; col < BOARD_LENGTH; col++) {
 				
-				if (!this.board_array[player].block[row][col].empty()) {
+				if (!current_board.block[row][col].empty()) {
 					
-					var block = this.board_array[player].block[row][col].color;
+					var block = current_board.block[row][col].color;
 					
 					// If the block is in clearing, we light it up!
-					if (this.board_array[player].block[row][col].get_state() == Block.StateEnum.CLEAR) {
+					if (current_board.block[row][col].get_state() == Block.StateEnum.CLEAR) {
 						block = block.replace("b", "f");
 					}
 					
 					// Shift the block depending on how far it is into a fall.
-					var relative_position = this.board_array[player].block[row][col].relative_position();
-					
+					// Then, shift the block based on the autoraise of the board.
+					var relative_position = current_board.block[row][col].relative_position();
+					relative_position += fractional_raise;
+
 					ctx.fillStyle = block;
 					ctx.fillRect(
 						b_c.left + col * block_length,
@@ -145,25 +168,56 @@ Game.prototype.draw = function(accumulator) {
 			}
 		}
 
+		// Draw to be inserted blocks
+		for (var col = 0; col < BOARD_LENGTH; col++) {
+			var block = current_board.raising_blocks[col].color;
+			block = block.replace("b", "8");
+
+			var relative_position = fractional_raise;
+
+			ctx.fillStyle = block;
+			ctx.fillRect(
+				b_c.left + col * block_length,
+				bot - (relative_position) * block_height,
+				block_length, block_height);
+		}
+
+		// Redraw Top and Bottom :/
+		ctx.fillStyle = CANVAS_BACKGROUND_COLOR;
+		ctx.fillRect(
+			b_c.left,
+			b_c.top - block_height,
+			block_length * BOARD_LENGTH,
+			block_height);
+		ctx.fillRect(
+			b_c.left,
+			bot,
+			block_length * BOARD_LENGTH,
+			block_height);
+
 		// Draw cursor
 		var cursor_width =  CURSOR_WIDTH * b_c.length / BOARD_LENGTH;
 		ctx.lineWidth = cursor_width;
 		ctx.fillStyle = "#000000";
 		ctx.strokeRect(
-					b_c.left + this.board_array[player].cursor.x * block_length - cursor_width / 2,
-					bot - (this.board_array[player].cursor.y + 1) * block_height - cursor_width / 2,
+					b_c.left + current_board.cursor.x * block_length - cursor_width / 2,
+					bot - (current_board.cursor.y + fractional_raise + 1) * block_height - cursor_width / 2,
 					block_length * 2 + cursor_width, block_height + cursor_width);
 
-		ctx.fillStyle = "#E6DDAC";
+		// Board IDer
+		ctx.textAlign = "start";
+		ctx.fillStyle = TEXT_COLOR;
 		ctx.font = b_c.height/30 + "px sans-serif";
-		ctx.textAlign="start";
-		ctx.fillText("Board " + player + ": " + this.input.get_name(this.board_array[player]), b_c.left, b_c.top + b_c.height + b_c.height/30);
+		ctx.fillText("Board " + player + ": " + this.input.get_name(current_board), b_c.left, b_c.top + b_c.height + b_c.height/30);
+
+		// Stop! HAMMERTIME
+		ctx.fillText(Math.floor(current_board.clear_lag * 100)/100 + "", b_c.left + b_c.length/30, b_c.top + b_c.height/30);
 
 		// Fun facts!
 		ctx.font = b_c.height/60 + "px sans-serif";
-		ctx.textAlign="end";
+		ctx.textAlign = "end";
 
-		var efficiency = this.board_array[player].total_blocks / this.board_array[player].total_moves;
+		var efficiency = current_board.total_blocks / current_board.total_moves;
 		ctx.fillText("Efficiency!", b_c.left + b_c.length, b_c.top + b_c.height + b_c.height/60);
 
 		// TODO: Do some stuff with color to make players feel bad

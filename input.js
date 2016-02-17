@@ -60,10 +60,10 @@ Input.prototype.up = function(name) {
 	var board = this.get_board(name)
 
 	if (board != undefined) {
-		if (board.cursor.y < BOARD_HEIGHT - 1) {
+		if (board.cursor.y + 1 < board.HEIGHT - 1 || (board.death_grace && board.cursor.y < board.HEIGHT - 1)) {
 			board.cursor.y += 1;
 			board.total_moves++;
-			SoundPlayer.play_move();
+			if (!board.has_lost) { SoundPlayer.play_move(); }
 		}
 	}
 }
@@ -76,7 +76,7 @@ Input.prototype.down = function(name) {
 		if (board.cursor.y > 0) {
 			board.cursor.y -= 1;
 			board.total_moves++;
-			SoundPlayer.play_move();
+			if (!board.has_lost) { SoundPlayer.play_move(); }
 		}
 	}
 }
@@ -89,7 +89,7 @@ Input.prototype.left = function(name) {
 		if (board.cursor.x > 0) {
 			board.cursor.x -= 1;
 			board.total_moves++;
-			SoundPlayer.play_move();
+			if (!board.has_lost) { SoundPlayer.play_move(); }
 		}
 	}
 }
@@ -102,7 +102,7 @@ Input.prototype.right = function(name) {
 		if (board.cursor.x < BOARD_LENGTH - 2) {
 			board.cursor.x += 1;
 			board.total_moves++;
-			SoundPlayer.play_move();
+			if (!board.has_lost) { SoundPlayer.play_move(); }
 		}
 	}
 }
@@ -121,8 +121,8 @@ Input.prototype.raise = function(name)	{
 
 	var board = this.get_board(name)
 
-	if (board != undefined) {
-		SoundPlayer.play_move();
-		board.raise();
+	if (board != undefined && !board.death_grace) {
+		board.force_raise = true;
+		board.clear_lag = 0;
 	}
 }
