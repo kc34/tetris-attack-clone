@@ -37,7 +37,7 @@ var ctx = canvas.getContext("2d");
 /**
  * Other important global variables (e.g. time-keeping, environment)
  */
-var my_game = new Menu();
+var my_screen = new Menu();
 var TIME_STEP = 1.0 / 50; // Time-step. Measured in seconds.
 var total_elapsed_time = 0.0;
 var accumulator = 0.0;
@@ -56,29 +56,29 @@ function main() {
     current_time = new_time;
 
     accumulator += frame_time;
+    
     while ( accumulator >= TIME_STEP )
     {
-        my_game.update(TIME_STEP);
+        my_screen.update(TIME_STEP);
         total_elapsed_time += TIME_STEP;
         accumulator -= TIME_STEP;
     }
-    ctx.fillStyle = "#334D66";
-	ctx.fillRect( 0 , 0 , window.innerWidth , window.innerHeight );
-	my_game.draw(accumulator); // accumulator passed in as a partial frame. For Anti-A purposes
+    
+	my_screen.draw(); // accumulator passed in as a partial frame. For Anti-A purposes
 }
 
 // Borrowed from http://stackoverflow.com/questions/1846599
 function keydown_handler(key){
 		
 	var keynum = window.event ? key.keyCode : key.which; // window.event = userIsIE
-	my_game.keydown_handler(String.fromCharCode(keynum));
+	my_screen.keydown_handler(String.fromCharCode(keynum));
 	
 }
 
 function keyup_handler(key){
 		
 	var keynum = window.event ? key.keyCode : key.which; // window.event = userIsIE
-	my_game.keyup_handler(String.fromCharCode(keynum));
+	my_screen.keyup_handler(String.fromCharCode(keynum));
 	
 }
 
@@ -93,7 +93,7 @@ console.log("Try new_board(x, y)");
 var new_board = function(x, y) {
 	BOARD_HEIGHT = y;
 	BOARD_LENGTH = x;
-	my_game = new Game(1);
+	my_screen = new Game(1);
 }
 
 </script>

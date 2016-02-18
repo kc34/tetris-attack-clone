@@ -1,6 +1,6 @@
 var Input = function() {
 
-	this.name_to_board = [];
+	this.name_to_board = {};
 	this.board_to_name = [];
 }
 

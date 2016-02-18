@@ -33,7 +33,7 @@ Menu.prototype.draw = function(accumulator) {
 
 Menu.prototype.keydown_handler = function(key) {
 
-	if (key == 'j') { my_game = new Game(1); }
+	if (key == 'J') { my_screen = new Game(1); }
 	else {
 		this.last_pressed = key;
 	}
