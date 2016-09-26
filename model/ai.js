@@ -1,7 +1,6 @@
-console.log ("Looking for really inept bots to play against?");
-console.log ("Try my_game.add_ai()");
-console.log ("You also might want to turn your volume down.");
-
+/**
+ * An artificial intelligence player to play against.
+ */
 var Ai = function(name, input) {
 
 	this.name = name;
