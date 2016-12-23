@@ -31,7 +31,7 @@ Menu.prototype.draw = function(accumulator) {
 
 }
 
-Menu.prototype.keydown_handler = function(key) {
+Menu.prototype.keydown_handler = function(key, meaning) {
 
 	if (key == 'J') { my_screen = new Game(1); }
 	else {
@@ -39,7 +39,7 @@ Menu.prototype.keydown_handler = function(key) {
 	}
 }
 
-Menu.prototype.keyup_handler = function(key) {
+Menu.prototype.keyup_handler = function(key, meaning) {
 
 
 }
