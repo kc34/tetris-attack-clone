@@ -230,7 +230,7 @@ Game.prototype.keydown_handler = function(key, meaning) {
 	// TODO: Rising and switching are spammable again, sorry.
 
 	split = meaning.split(".");
-	splitAgain = split.split("_");
+	splitAgain = split[0].split("_");
 
 	if (splitAgain[0] === "player")
 	{
