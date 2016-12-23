@@ -2,8 +2,8 @@
 
 Attempting to bring Tetris Attack back into the spotlight! Please tell everyone and their pets about this wonderful game.
 - Play it at http://kc34.github.io/tetris-attack-clone
-- Play a dev branch at:
-  * http://artlessavian.github.io/tetris-attack-clone :tada: :tada:
+- Play a branch at:
+  * http://artlessavian.github.io/tetris-attack-clone
 - Not yet a stable release but it's on the way!
 
 # Help me!

@@ -24,64 +24,19 @@ var Game = function(players) {
 	Screen.apply(this, []);
 
 	this.board_array = [];
+	this.player_to_board = [];
+
 	for (var i = 0; i < players; i++) {
-		this.add_board();
+		this.add_player();
 	}
 
-	this.ais = [];
-
-	this.pressed_keys = new Array();
-	this.input = new Input();
-
-	this.key_to_func = [];
-	this.key_to_name = [];
-
-	this.register_player("Player 1", "WASDJK", this.board_array[0]);
-
+	this.activePlayers = 1;
+	this.ais = new Array();
 }
 
 // Inherit from Screen 
 Game.prototype = Object.create(Screen.prototype);
 Game.prototype.constructor = Game;
-
-Game.prototype.register_player = function(name, controls, board) {
-
-	// oh my god this is so bad
-
-	if (this.input.register(name, board) === null) {
-
-		return false;
-	}
-
-	controls = controls.toUpperCase();
-	controls = controls.split("");
-
-	for (var i = 0; i < 6; i++) {
-		if (this.key_to_func[controls[i]] != undefined) {
-			console.log("Conflict with " + controls[i] + "");
-			console.log(this.key_to_name[controls[i]] + " owns that key");
-			return false;
-		}
-	}
-
-	// Bind keys to hooks
-
-	this.key_to_func[controls[0]] = this.input.up.bind(this.input);
-	this.key_to_func[controls[1]] = this.input.left.bind(this.input);
-	this.key_to_func[controls[2]] = this.input.down.bind(this.input);
-	this.key_to_func[controls[3]] = this.input.right.bind(this.input);
-	this.key_to_func[controls[4]] = this.input.switch.bind(this.input);
-	this.key_to_func[controls[5]] = this.input.raise.bind(this.input);
-
-	this.key_to_name[controls[0]] = name;
-	this.key_to_name[controls[1]] = name;
-	this.key_to_name[controls[2]] = name;
-	this.key_to_name[controls[3]] = name;
-	this.key_to_name[controls[4]] = name;
-	this.key_to_name[controls[5]] = name;
-
-	return true;
-}
 
 Game.prototype.add_board = function() {
 
@@ -90,14 +45,17 @@ Game.prototype.add_board = function() {
 	return board;
 }
 
-Game.prototype.add_ai = function() {
+Game.prototype.add_player = function() {
+
+	var board = this.add_board();
+	this.player_to_board.push(board);
+}
+
+Game.prototype.add_ai = function(aps) {
 
 	var board = this.add_board();
 
-	var name = "AI " + this.ais.length;
-	this.input.register(name, board);
-
-	var ai = new Ai(name, this.input);
+	var ai = new Ai(board, aps);
 	this.ais.push(ai);
 	return ai;
 }
@@ -208,7 +166,7 @@ Game.prototype.draw = function(accumulator) {
 		ctx.textAlign = "start";
 		ctx.fillStyle = TEXT_COLOR;
 		ctx.font = b_c.height/30 + "px sans-serif";
-		ctx.fillText("Board " + player + ": " + this.input.get_name(current_board), b_c.left, b_c.top + b_c.height + b_c.height/30);
+		ctx.fillText("Player " + (player + 1), b_c.left, b_c.top + b_c.height + b_c.height/30);
 
 		// Stop! HAMMERTIME
 		ctx.fillText(Math.floor(current_board.clear_lag * 100)/100 + "", b_c.left + b_c.length/30, b_c.top + b_c.height/30);
@@ -260,29 +218,43 @@ Game.prototype.get_board_coordinates = function(player) {
  * Ugly way to match key presses to functions.
  * TODO: Make less ugly!
  */
-Game.prototype.keydown_handler = function(key) {
+Game.prototype.keydown_handler = function(key, meaning) {
 	
 	// Figure out a way to tie this back into removing spam
-	if (this.pressed_keys.indexOf(key) != -1) {
-		console.log("You are pressing a key that is held down!");
-		return null;
-	}
+	// if (this.pressed_keys.indexOf(key) != -1) {
+	// 	console.log("You are pressing a key that is held down!");
+	// 	return null;
+	// }
 
 	// Calls function bound to key
 	// TODO: Rising and switching are spammable again, sorry.
 
-	if (key in this.key_to_func)
+	split = meaning.split(".");
+	splitAgain = split.split("_");
+
+	if (splitAgain[0] === "player")
 	{
-		this.key_to_func[key](this.key_to_name[key]);
+		var num = 1 * splitAgain[1];
+		if (num > this.player_to_board.length) {return;}
+
+		board = this.player_to_board[num];
+
+		if (split[1] === "up") {board.upInput();}
+		else if (split[1] === "down") {board.downInput();}
+		else if (split[1] === "left") {board.leftInput();}
+		else if (split[1] === "right") {board.rightInput();}
+		else if (split[1] === "a") {board.switchInput();}
+		else if (split[1] === "b") {board.switchInput();}
+		else if (split[1] === "c") {board.raiseInput();}
 	}
 }
 
-Game.prototype.keyup_handler = function(key) {
+Game.prototype.keyup_handler = function(key, meaning) {
 	// this is computationally slow. TODO: make faster?
-	var idx = this.pressed_keys.indexOf(key);
-	if (idx != -1) {
-		this.pressed_keys.splice(idx, 1);
-	}
+	// var idx = this.pressed_keys.indexOf(key);
+	// if (idx != -1) {
+	// 	this.pressed_keys.splice(idx, 1);
+	// }
 }
 
 /**
