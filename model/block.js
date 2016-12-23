@@ -1,40 +1,61 @@
 /**
- * The Board is made up of many Blocks. Blocks are cleared, and they fall.
+ * The Block class represents the pieces contained in the board. They move
+ * downwards when nothing is under them, and are cleared when three or more of
+ * them of the same color are lined up.
+ *
+ * It's also important to keep track of whether they were cleared due to a chain
+ * reaction. This forms one of the core tenets of gameplay.
+ *
+ * @author: kc34
  */
 var Block = function(block_colors) {
-	
-	// Obviously, you need colors to be able to match the blocks.
+	/**
+	 * Holds the 'type' of block. Used in determining matches.
+	 */
 	this.color = random_from_array(block_colors);
-	
-	// Blocks are either resting, clearing, or falling. A float will preceed a fall.
-	this.state = Block.StateEnum.REST; // StateEnum is provided below.
-	
-	// state_timer keeps track of time remaining until next state.
-	// For example, FLOAT -> FALL, or CLEAR -> EMPTY.
+	/**
+	 * Holds the state of the block.
+	 */
+	this.state = Block.StateEnum.REST;
+	/**
+	 * Counts down, and is set to keep track of how long a state
+	 * lasts.
+	 */
 	this.state_timer = 0;
-	
-	// chain_material activates when a block is dropped by a clear.
+	/**
+	 * Counts down,
+	 */
 	this.chain_material = false;
-	
-	// floats caused by chains can be swapped.
+	/**
+	 * Tracks if the float is swappable.
+	 */
 	this.good_float = false;
-	
 }
 
+/**
+ * Returns true if the block is the empty singleton.
+ */
 Block.prototype.empty = function() {
-	// Returns true if empty (i.e. if it's the empty-singleton.)
 	return false;
 }
 
+/**
+ * Returns true if the block can be cleared.
+ */
 Block.prototype.isMatchable = function() {
 	return (this.state == Block.StateEnum.REST || this.state == Block.StateEnum.FLOAT);
 }
 
+/**
+ * Returns true if this block can support other blocks.
+ */
 Block.prototype.isSupportive = function() {
-	// Can this block hold up other blocks?
 	return !(this.empty() || this.get_state() == Block.StateEnum.FALL);
 }
 
+/**
+ * Returns true if this block can be moved.
+ */
 Block.prototype.isSwappable = function() {
 	switch (this.get_state()) {
 		case Block.StateEnum.CLEAR:
@@ -52,10 +73,16 @@ Block.prototype.isSwappable = function() {
 	}
 }
 
+/**
+ * Returns the state of the block.
+ */
 Block.prototype.get_state = function() {
 	return this.state;
 }
 
+/**
+ * Updates the state of the block.
+ */
 Block.prototype.set_state = function(new_state, args) {
 	old_state = this.state;
 	switch (new_state) {
@@ -90,6 +117,9 @@ Block.prototype.set_state = function(new_state, args) {
 	this.state = new_state;
 }
 
+/**
+ * Decrements the timer. If the timer is below zero, it will be set to zero.
+ */
 Block.prototype.update_timer = function(dt) {
 	this.state_timer = this.state_timer - dt;
 	if (this.state_timer < 0) {
@@ -97,20 +127,28 @@ Block.prototype.update_timer = function(dt) {
 	}
 }
 
+/**
+ * Gets the position of the block relative to its board position.
+ * Ideally, this will be phased out when the board is changed to have more
+ * height values.
+ */
 Block.prototype.relative_position = function() {
 	if (this.state == Block.StateEnum.FALL) {
 		return this.state_timer / (1.0 / DROP_SPEED) - 0.5;
 	} else {
 		return 0.0;
-	} 
+	}
 }
 
+/**
+ * Static method that generates a randomly colored block.
+ */
 Block.random = function() {
 	return new Block(BLOCK_COLORS);
 }
 
 /**
- * Here is a very ghetto JS enum adaptor.
+ * Here is a JavaScript version of an enumeration.
  */
 Block.StateEnum = {
 	REST : "REST",
@@ -120,12 +158,18 @@ Block.StateEnum = {
 	EMPTY : "EMPTY"
 }
 
+/**
+ * Creates an empty block singleton.
+ */
 var EMPTY_BLOCK = new Block([EMPTY_BLOCK_COLOR]);
 EMPTY_BLOCK.matches = function(otherBlock) { return false; }
 EMPTY_BLOCK.empty = function() { return true; }
-EMPTY_BLOCK.set_state = function() { this.state = "EMPTY" } // TODO: INVESTIGATE
+EMPTY_BLOCK.set_state = function() { this.state = "EMPTY" }
 EMPTY_BLOCK.set_state("EMPTY");
 
+/**
+ * Statically checks if two blocks are matching.
+ */
 Block.isMatch = function(block_a, block_b) {
 	// Used for matching purposes. Both blocks have to be "matchable"
 	colors_match = block_a.color == block_b.color;
