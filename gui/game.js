@@ -230,22 +230,23 @@ Game.prototype.keydown_handler = function(key, meaning) {
 	// TODO: Rising and switching are spammable again, sorry.
 
 	split = meaning.split(".");
-	splitAgain = split[0].split("_");
 
-	if (splitAgain[0] === "player")
+	if (split[0] === "player")
 	{
-		var num = 1 * splitAgain[1];
+		splitAgain = split[1].split("_");
+
+		var num = 1 * splitAgain[0];
 		if (num > this.player_to_board.length) {return;}
 
 		board = this.player_to_board[num];
 
-		if (split[1] === "up") {board.upInput();}
-		else if (split[1] === "down") {board.downInput();}
-		else if (split[1] === "left") {board.leftInput();}
-		else if (split[1] === "right") {board.rightInput();}
-		else if (split[1] === "a") {board.switchInput();}
-		else if (split[1] === "b") {board.switchInput();}
-		else if (split[1] === "c") {board.raiseInput();}
+		if (splitAgain[1] === "up") {board.upInput();}
+		else if (splitAgain[1] === "down") {board.downInput();}
+		else if (splitAgain[1] === "left") {board.leftInput();}
+		else if (splitAgain[1] === "right") {board.rightInput();}
+		else if (splitAgain[1] === "a") {board.switchInput();}
+		else if (splitAgain[1] === "b") {board.switchInput();}
+		else if (splitAgain[1] === "c") {board.raiseInput();}
 	}
 }
 
