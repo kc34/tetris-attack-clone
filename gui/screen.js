@@ -18,10 +18,10 @@ Screen.prototype.draw = function(accumulator) {
 	throw new error("Cannot initialize abstract class!");
 }
 
-Screen.prototype.keydown_handler = function(key) {
+Screen.prototype.keydown_handler = function(key, meaning) {
 	throw new error("Cannot initialize abstract class!");
 }
 
-Screen.prototype.keyup_handler = function(key) {
+Screen.prototype.keyup_handler = function(key, meaning) {
 	throw new error("Cannot initialize abstract class!");
 }

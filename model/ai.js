@@ -1,16 +1,13 @@
 /**
  * An artificial intelligence player to play against.
  */
-var Ai = function(name, input) {
+var Ai = function(board, aps) {
 
-	this.name = name;
-	this.input = input;
+	this.board = board;
 
 	this.backlog_time = 0;
 
-	this.inputs_p_second = Math.random() * 19 + 1;
-
-	this.board = null;
+	this.inputs_p_second = aps;
 
 	// Queues are really bad in Javascript
 	// Shift/Push beause inputs are added in bulk and removed each frame
@@ -20,29 +17,9 @@ var Ai = function(name, input) {
 
 Ai.prototype.update = function(dt) {
 
-	// Get the board for faster access?
-	// IDK its javascript
-	if (this.board == null) {
-		this.board = this.input.get_board(this.name);
-		if (this.board == null)
-		{
-			return null;
-		}
-	}
-
-	// In a lag spike, real people should be able predict the future well enough to still make inputs
-	// This lets the AI make moves in the lag spike without it being "cheaty"
-
 	this.backlog_time += dt;
 
-	// Find a reasonable non-magic formula
-	// REASONING:
-	// Math.pow(dt [operation] foo, bar) | As time between render gets larger, it becomes harder to predict the future
-	// + foo | The value of the magic number is the maximum moves made outside of a lag spike
-	var useful_moves = Math.pow(dt, 1/3) + 2;
-
-	for (var moves = Math.min(useful_moves, this.backlog_time * this.inputs_p_second); moves >= 0; moves--) {
-		this.backlog_time -= 1/this.inputs_p_second;
+	for (2; this.backlog_time >= 1/this.inputs_p_second; this.backlog_time -= 1/this.inputs_p_second) {
 		this.move();
 	}
 }
@@ -57,22 +34,22 @@ Ai.prototype.move = function() {
 	var instruction = this.input_queue.shift();
 	switch (instruction) {
 		case "up":
-			this.input.up(this.name);
+			this.board.upInput();
 			break;
 		case "left":
-			this.input.left(this.name);
+			this.board.leftInput();
 			break;
 		case "down":
-			this.input.down(this.name);
+			this.board.downInput();
 			break;
 		case "right":
-			this.input.right(this.name);
+			this.board.rightInput();
 			break;
 		case "switch":
-			this.input.switch(this.name);
+			this.board.switchInput();
 			break;
 		case "raise":
-			this.input.raise(this.name);
+			this.board.raiseInput();
 			break;
 	}
 }
@@ -80,7 +57,7 @@ Ai.prototype.move = function() {
 Ai.prototype.get_instructions = function() {
 
 	// For every row
-	for (var row = BOARD_HEIGHT-1 - 1; row >= 0; row--) {
+	for (var row = 0; row <= BOARD_HEIGHT* 2/3; row++) {
 		// Check if row is completely empty
 		for (var column = 0; column < BOARD_LENGTH; column++) {
 			if (!this.board.block[row][column].empty())
@@ -91,9 +68,6 @@ Ai.prototype.get_instructions = function() {
 		// Completion of previous loop ==> row is empty
 		if (column >= BOARD_LENGTH) {
 			this.input_queue.push("raise");
-		}
-		else {
-			break;
 		}
 	}
 

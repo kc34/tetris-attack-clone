@@ -1,4 +1,4 @@
-FORCE_RAISE_SPEED = 3;
+var FORCE_RAISE_SPEED = 3;
 
 var Board = function(board_number) {
 	
@@ -396,6 +396,58 @@ Board.prototype.raise = function(dt) {
 	// Dont put the cursor above the board
 	if (this.cursor.y + 1 >= this.HEIGHT && !this.death_grace) {
 		this.cursor.y -= 1;
+	}
+}
+
+Board.prototype.upInput = function() {
+
+	if (this.cursor.y + 1 < this.HEIGHT - 1 || (this.death_grace && this.cursor.y < this.HEIGHT - 1)) {
+		this.cursor.y += 1;
+		this.total_moves++;
+		if (!this.has_lost) { SoundPlayer.play_move(); }
+	}
+}
+
+Board.prototype.downInput = function() {
+
+	if (this.cursor.y > 0) {
+		this.cursor.y -= 1;
+		this.total_moves++;
+		if (!this.has_lost) { SoundPlayer.play_move(); }
+	}
+}
+
+Board.prototype.leftInput = function() {
+
+	if (this.cursor.x > 0) {
+		this.cursor.x -= 1;
+		this.total_moves++;
+		if (!this.has_lost) { SoundPlayer.play_move(); }
+	}
+}
+
+Board.prototype.rightInput = function() {
+
+	if (this.cursor.x < BOARD_LENGTH - 2) {
+		this.cursor.x += 1;
+		this.total_moves++;
+		if (!this.has_lost) { SoundPlayer.play_move(); }
+	}
+}
+
+Board.prototype.switchInput = function() {
+
+	if (this != undefined) {
+		this.swap();
+		this.total_moves++;
+	}
+}
+
+Board.prototype.raiseInput = function() {
+
+	if (!this.death_grace) {
+		this.force_raise = true;
+		this.clear_lag = 0;
 	}
 }
 
